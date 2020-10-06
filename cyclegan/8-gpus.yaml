@@ -1,0 +1,30 @@
+description: Cycle GAN Pytorch 8 GPUs
+data:
+  downloaded_path: /tmp
+  dataset_name: monet2photo
+  n_cpu: 8
+  img_height: 256
+  img_width: 256
+  channels: 3
+  sample_interval: 3000
+hyperparameters:
+  global_batch_size: 8
+  lr: 0.0002
+  b1: 0.5
+  b2: 0.999
+  decay_epoch: 100  # epoch from which to start lr decay
+  n_residual_blocks: 9  # number of residual blocks in generator
+  lambda_cyc: 10.0
+  lambda_id: 5.0
+records_per_epoch: 6287
+searcher:
+  name: single
+  metric: loss_real_D
+  max_length:
+    epochs: 2000
+  smaller_is_better: True
+entrypoint: determined_model_def:CycleGANTrial
+resources:
+  slots_per_trial: 8
+min_checkpoint_period:
+  epochs: 1
