@@ -1,0 +1,50 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# All log files
+*.log
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# dotenv
+.env
+
+# virtualenv
+.venv
+venv/
+ENV/
+
+# mypy
+.mypy_cache/
+
+# Determined distributable package
+determined-*.tar.gz
+
+# All Python wheels
+*.whl
+
+# Node modules
+node_modules/
+
+# VSCode
+.vscode/
+
+# JetBrains IDEs (e.g., PyCharm and GoLand)
+.idea/
+
+# gobin directory used for tests
+gobin
+
+# MacOS system files
+*.DS_Store
+.dccache
+
+# Hydra output
+model_hub/mmdetection/hydra/outputs
+
+build/
