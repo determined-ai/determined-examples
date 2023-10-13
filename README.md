@@ -4,9 +4,7 @@
 
 | Example                                                       | Dataset          | Framework             |
 |:-------------------------------------------------------------:|:----------------:|:---------------------:|
-| [mnist\_pytorch](tutorials/mnist_pytorch)                     | MNIST            | PyTorch               |
 | [fashion\_mnist\_tf\_keras](tutorials/fashion_mnist_tf_keras) | Fashion MNIST    | TensorFlow (tf.keras) |
-| [core\_api](tutorials/core_api)                               | Core API         | -                     |
 
 ## Computer Vision
 
@@ -18,7 +16,6 @@
 | [mmdetection\_pytorch](computer_vision/mmdetection_pytorch)                  | COCO                         | PyTorch                                  |
 | [detr\_coco\_pytorch](computer_vision/detr_coco_pytorch)                     | COCO                         | PyTorch                                  |
 | [deformabledetr\_coco\_pytorch](computer_vision/deformabledetr_coco_pytorch) | COCO                         | PyTorch                                  |
-| [cifar10\_tf\_keras](computer_vision/cifar10_tf_keras)                       | CIFAR-10                     | TensorFlow (tf.keras)                    |
 | [iris\_tf\_keras](computer_vision/iris_tf_keras)                             | Iris Dataset                 | TensorFlow (tf.keras)                    |
 | [unets\_tf\_keras](computer_vision/unets_tf_keras)                           | Oxford-IIIT Pet Dataset      | TensorFlow (tf.keras)                    |
 | [efficientdet\_pytorch](computer_vision/efficientdet_pytorch)                | COCO                         | PyTorch                                  |
@@ -51,12 +48,6 @@
 | Example                                                                | Dataset  | Framework |
 |:----------------------------------------------------------------------:|:--------:|:---------:|
 | [protonet\_omniglot\_pytorch](meta_learning/protonet_omniglot_pytorch) | Omniglot | PyTorch   |
-
-## Diffusion
-
-|                                        Example                                        |  Dataset  | Framework |
-|:-------------------------------------------------------------------------------------:|:---------:|:---------:|
-| [textual\_inversion\_stable\_diffusion](diffusion/textual_inversion_stable_diffusion) | det_logos |  PyTorch  |
 
 ## Generative Adversarial Networks (GAN)
 
