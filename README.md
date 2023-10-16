@@ -1,4 +1,6 @@
-# Determined Examples
+# Determined Legacy Examples
+
+This Repository contains Determined examples that are no longer actively maintained by the determined team.
 
 ## Tutorials
 
