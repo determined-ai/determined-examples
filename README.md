@@ -1,6 +1,6 @@
 # Determined As-is Examples
 
-This Repository contains Determined examples that are no longer actively maintained by the Determined team.
+This repository contains a variety of Determined examples that are not actively maintained by the Determined team.
 
 ## Tutorials
 
