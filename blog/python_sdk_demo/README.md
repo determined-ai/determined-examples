@@ -2,7 +2,7 @@
 
 ## Overview
 
-This script shows example usage of the Determined Python SDK to run experiments.
+This script shows example usage of the Determined Python SDK to run and administer experiments.
 
 It:
 1. Archives any existing experiments with the same names as the datasets we'll train on.
