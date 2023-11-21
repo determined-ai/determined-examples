@@ -1,12 +1,18 @@
-# Determined Legacy Examples
+# Determined As-is Examples
 
-This Repository contains Determined examples that are no longer actively maintained by the determined team.
+This Repository contains Determined examples that are no longer actively maintained by the Determined team.
 
 ## Tutorials
 
 | Example                                                       | Dataset          | Framework             |
 |:-------------------------------------------------------------:|:----------------:|:---------------------:|
 | [fashion\_mnist\_tf\_keras](tutorials/fashion_mnist_tf_keras) | Fashion MNIST    | TensorFlow (tf.keras) |
+
+## Blog posts
+| Example                                 |
+|:---------------------------------------:|
+| [Python SDK demo](blog/python_sdk_demo) |
+
 
 ## Computer Vision
 
