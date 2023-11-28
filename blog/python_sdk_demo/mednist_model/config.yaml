@@ -23,7 +23,7 @@ searcher:
     smaller_is_better: false
     max_length: 
       epochs: 1
-    max_trials: 10
+    max_trials: 3
     mode: aggressive
 resources:
     slots_per_trial: 1
