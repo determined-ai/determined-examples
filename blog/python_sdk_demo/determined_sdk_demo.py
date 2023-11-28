@@ -162,6 +162,7 @@ def finish_experiment(exp: client.Experiment) -> client.Checkpoint:
         checkpoints = exp.list_checkpoints(
             max_results=1,
             sort_by=client.CheckpointSortBy.SEARCHER_METRIC,
+            order_by=client.OrderBy.DESCENDING,
         )
 
         return checkpoints[0]
