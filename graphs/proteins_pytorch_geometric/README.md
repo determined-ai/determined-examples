@@ -6,6 +6,7 @@ Determined. It was adapted from the [protein_topk_pool
 example](https://github.com/rusty1s/pytorch_geometric/blob/master/examples/proteins_topk_pool.py).
 
 The key parts of this example are contained in the following functions in `model_def.py`:
+
 - `build_training_data_loader`, `build_validation_data_loader`:
   use `determined.pytorch.DataLoader` in conjunction with `torch_geometric.data.dataloader.Collater`
   to make use of graph data mini-batching.
@@ -23,18 +24,22 @@ Make sure to change the pinned version appropriately if you're planning to use
 a different version of PyTorch or CUDA.
 
 ## Files
-* **model_def.py**: Model and trial definition.
-* **startup-hook.sh**: Install extra dependencies.
+
+- **model_def.py**: Model and trial definition.
+- **startup-hook.sh**: Install extra dependencies.
 
 ### Configuration Files
-* **const.yaml**: Train the model on a single GPU with constant hyperparameter values.
-* **distributed.yaml**: Distributed training on 4 GPUs.
-* **adaptive.yaml**: Hyperparameter search enabled.
+
+- **const.yaml**: Train the model on a single GPU with constant hyperparameter values.
+- **distributed.yaml**: Distributed training on 4 GPUs.
+- **adaptive.yaml**: Hyperparameter search enabled.
 
 ## Data
+
 The example uses the `PROTEINS` dataset which is provided as part of pytorch_geometric library.
 
 ## To Run
+
 If you have not yet installed Determined, installation instructions can be found
 under `docs/install-admin.html` or at https://docs.determined.ai/latest/index.html
 
@@ -45,5 +50,6 @@ const.yaml .`. The other configurations can be run by specifying the appropriate
 configuration file in place of `const.yaml`.
 
 ## Results
+
 The trial will achieve ~75% accuracy after training for 10 epochs, and will approach ~80% accuracy
 by epoch 200 in a few minutes of runtime on an NVIDIA K80.
