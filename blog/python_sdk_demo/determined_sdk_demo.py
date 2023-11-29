@@ -20,11 +20,12 @@ import medmnist
 import yaml
 
 
-WORKSPACE = "MedMNIST"  # The workspace that contains the projects
-PROJECT = "<<<RENAME ME>>>"  # The project that contains experiments
+WORKSPACE = "SDK Demo"  # The workspace that contains the projects
+PROJECT = "MedMNIST"  # The project that contains experiments
 MODEL_DIR = "mednist_model"  # Where the config and model_def files live
 # We'll train models on the these 3 MedMNIST datasets
 DATASETS = ["dermamnist", "bloodmnist", "retinamnist"]
+DEMO_VERSION = "demoV1"
 
 
 def setup_projects(workspace_name: str, project_names: List[str]) -> None:
@@ -85,25 +86,26 @@ def archive_experiments(
                     )
 
 
-def create_models(model_names: List[str], workspace_name: str) -> None:
+def create_model(name: str, workspace: str) -> None:
     """Create models for each dataset and register them in the Determined model registry.
 
     If a model of the passed name already exists, this function moves it to the passed workspace
     if necessary.
 
     Args:
-        model_names: List of model names.
+        model_name: Name of the model to create.
         workspace_name: Name of the workspace that contains the models.
     """
-    workspace_id = client.get_workspace(workspace_name).id
-    for name in model_names:
-        try:
-            model = client.get_model(name)
-        except errors.NotFoundException:
-            model = client.create_model(name=name)
+    workspace_id = client.get_workspace(workspace).id
+    try:
+        model = client.get_model(name)
+        print(f"Using existing model '{name}' from the registry")
+    except errors.NotFoundException:
+        print(f"Creating new model '{name}' in the registry")
+        model = client.create_model(name=name)
 
-        if model.workspace_id != workspace_id:
-            model.move_to_workspace(workspace_name=workspace_name)
+    if model.workspace_id != workspace_id:
+        model.move_to_workspace(workspace_name=workspace)
 
 
 def run_experiment(
@@ -188,11 +190,11 @@ def main():
         workspace_name=WORKSPACE,
         project_name=PROJECT,
     )
-    create_models(DATASETS, WORKSPACE)
     exps = []
     for dataset in DATASETS:
+        create_model(name=dataset, workspace=WORKSPACE)
         exps.append(
-            run_experiment(dataset, workspace=WORKSPACE, project=PROJECT, labels=["v1"])
+            run_experiment(dataset, workspace=WORKSPACE, project=PROJECT, labels=[DEMO_VERSION])
         )  # Run the experiments in parallel
 
     print("Waiting for experiments to complete...")
@@ -200,7 +202,8 @@ def main():
         best_checkpoint = finish_experiment(exp)
         # models and experiments are both named after their medmnist dataset
         model = client.get_model(exp.name)
-        model.register_version(best_checkpoint.uuid)
+        model_version = model.register_version(best_checkpoint.uuid)
+        model_version.set_notes(f"Creating using Determined SDK demo version {DEMO_VERSION}")
 
 
 if __name__ == "__main__":
