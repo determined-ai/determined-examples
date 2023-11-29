@@ -9,8 +9,8 @@ This repository contains a variety of Determined examples that are not actively 
 | [fashion\_mnist\_tf\_keras](tutorials/fashion_mnist_tf_keras) | Fashion MNIST    | TensorFlow (tf.keras) |
 
 ## Blog posts
-| Example                                 | Description  |
-|:---------------------------------------:|:------------:|
+| Example                                 | Description                                                                  |
+|:---------------------------------------:|:----------------------------------------------------------------------------:|
 | [Python SDK demo](blog/python_sdk_demo) | Example usage of the Determined Python SDK to run and administer experiments |
 
 ## Computer Vision
