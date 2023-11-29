@@ -36,3 +36,4 @@ For more information about configuring the CLI, see [this doc](https://docs.dete
 ```
 python determined_sdk_demo.py
 ```
+

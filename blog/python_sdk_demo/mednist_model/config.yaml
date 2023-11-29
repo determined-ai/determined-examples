@@ -29,3 +29,4 @@ resources:
     slots_per_trial: 1
 entrypoint: model_def:MyMEDMnistTrial
 max_restarts: 0
+
