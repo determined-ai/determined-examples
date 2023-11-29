@@ -12,7 +12,7 @@ For an in-depth discussion of this script, see the blog post:
 For more information on the Determined Python SDK, see:
     https://docs.determined.ai/latest/reference/python-sdk.html
 """
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from determined.common.api import errors
 from determined.experimental import client
@@ -21,21 +21,20 @@ import yaml
 
 
 WORKSPACE = "MedMNIST"  # The workspace that contains the projects
-IN_PROGRESS_PROJECT = "In Progress"  # The project that contains in progress experiments
-FINISHED_PROJECT = "Finished"  # The project that contains finished experiments
+PROJECT = "<<<RENAME ME>>>"  # The project that contains experiments
 MODEL_DIR = "mednist_model"  # Where the config and model_def files live
 # We'll train models on the these 3 MedMNIST datasets
 DATASETS = ["dermamnist", "bloodmnist", "retinamnist"]
 
 
-def setup_projects(project_names: List[str], workspace_name: str) -> None:
+def setup_projects(workspace_name: str, project_names: List[str]) -> None:
     """Create projects in a workspace if they don't already exist.
 
     Projects belong to one workspace. One workspace can have many projects.
 
     Args:
-        workspace_name: Name of the workspace that contains the projects.
-        project_names: List of project names.
+        workspace_name: Name of the workspace to create.
+        project_names: List of project names to create in the passed workspace.
     """
     try:
         workspace = client.get_workspace(workspace_name)
@@ -53,10 +52,10 @@ def setup_projects(project_names: List[str], workspace_name: str) -> None:
 def archive_experiments(
     experiment_names: List[str], workspace_name: str, project_name: str
 ) -> None:
-    """Archive any existing, completed experiments with the same names as the datasets we train on.
+    """Archive any existing, ended experiments with the same names as the datasets we train on.
 
     Experiment names are not unique, so this function may result in archiving several experiments
-    for each passed name. Experiments with matching names that are not yet complete are left alone.
+    for each passed name. Experiments with matching names that are not yet done are left alone.
 
     Projects are used to organize experiments. Workspaces organize projects.
 
@@ -71,7 +70,12 @@ def archive_experiments(
         exps = client.list_experiments(name=name, project_id=project_id)
         for exp in exps:
             if not exp.archived:
-                if exp.state.value == client.ExperimentState.COMPLETED.value:
+                if exp.state.value in (
+                    client.ExperimentState.COMPLETED.value,
+                    client.ExperimentState.CANCELED.value,
+                    client.ExperimentState.DELETED.value,
+                    client.ExperimentState.ERROR.value,
+                ):
                     print(f"Archiving experiment {exp.id} (dataset={exp.name})")
                     exp.archive()
                 else:
@@ -102,37 +106,40 @@ def create_models(model_names: List[str], workspace_name: str) -> None:
             model.move_to_workspace(workspace_name=workspace_name)
 
 
-def run_experiments(datasets: List[str]) -> List[client.Experiment]:
-    """Run an experiment for each dataset.
-
-    This function additionally configures experiments to run in the "In Progress" project.
+def run_experiment(
+    dataset: str, workspace: str, project: str, labels: Optional[str]
+) -> client.Experiment:
+    """Run an experiment for a dataset.
 
     Args:
-        datasets: List of MedMNIST dataset names.
+        dataset: MedMNIST dataset name for this experiment.
+        workspace: Name of the workspace to run the experiments in.
+        project: Name of the project to run the experiments in.
+        labels: Optional list of labels to tag the experiments with.
 
     Returns:
-        A list of Experiment objects representing the experiments spawned on the Determined
-        platform.
+        An Experiment object representing the experiments spawned on the Determined platform.
     """
     with open(f"{MODEL_DIR}/config.yaml", "r") as file:
         exp_conf: Dict[str, str] = yaml.safe_load(file)
 
     exps = []
 
-    for dataset in datasets:
-        # Set configuration particular to this dataset and example script
-        exp_conf["name"] = dataset
-        exp_conf["workspace"] = WORKSPACE
-        exp_conf["project"] = IN_PROGRESS_PROJECT
-        exp_conf["records_per_epoch"] = medmnist.INFO[dataset]["n_samples"]["train"]
-        exp_conf["hyperparameters"]["data_flag"] = dataset
+    # Set configuration particular to this dataset and example script
+    exp_conf["name"] = dataset
+    exp_conf["workspace"] = workspace
+    exp_conf["project"] = project
+    exp_conf["records_per_epoch"] = medmnist.INFO[dataset]["n_samples"]["train"]
+    exp_conf["hyperparameters"]["data_flag"] = dataset
 
-        print(f"Starting experiment for dataset {dataset}")
-        exp = client.create_experiment(config=exp_conf, model_dir=MODEL_DIR)
-        print(f"Experiment {dataset} started with id {exp.id}")
-        exps.append(exp)
+    print(f"Starting experiment for dataset {dataset}")
+    exp = client.create_experiment(config=exp_conf, model_dir=MODEL_DIR)
+    print(f"Experiment {dataset} started with id {exp.id}")
 
-    return exps
+    for label in labels:
+        exp.add_label(label)
+
+    return exp
 
 
 def finish_experiment(exp: client.Experiment) -> client.Checkpoint:
@@ -140,9 +147,7 @@ def finish_experiment(exp: client.Experiment) -> client.Checkpoint:
 
     This function:
     1. Waits for an experiment to reach a terminal state
-    2. If it completed successfully, it:
-        a. Finds the best checkpoint
-        b. Moves the experiment to the "Finished" project
+    2. If it completed successfully, it finds and returns the best checkpoint
 
     Args:
         exp: An Experiment object
@@ -157,8 +162,6 @@ def finish_experiment(exp: client.Experiment) -> client.Checkpoint:
     exit_status = exp.wait()
     print(f"Experiment {exp.id} completed with status {exit_status}")
     if exit_status == client.ExperimentState.COMPLETED:
-        exp.move_to_project(workspace_name=WORKSPACE, project_name=FINISHED_PROJECT)
-
         checkpoints = exp.list_checkpoints(
             max_results=1,
             sort_by=client.CheckpointSortBy.SEARCHER_METRIC,
@@ -177,16 +180,20 @@ def main():
     client.login()  # Host address & user credentials can be optionally passed here
 
     setup_projects(
-        project_names=[IN_PROGRESS_PROJECT, FINISHED_PROJECT],
         workspace_name=WORKSPACE,
+        project_names=[PROJECT],
     )
     archive_experiments(
         experiment_names=DATASETS,
-        project_name=IN_PROGRESS_PROJECT,
         workspace_name=WORKSPACE,
+        project_name=PROJECT,
     )
     create_models(DATASETS, WORKSPACE)
-    exps = run_experiments(DATASETS)  # Run the experiments in parallel
+    exps = []
+    for dataset in DATASETS:
+        exps.append(
+            run_experiment(dataset, workspace=WORKSPACE, project=PROJECT, labels=["v1"])
+        )  # Run the experiments in parallel
 
     print("Waiting for experiments to complete...")
     for exp in exps:
