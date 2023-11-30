@@ -1,0 +1,32 @@
+hyperparameters:
+    global_batch_size: 128
+    lr: 0.001
+    weight_decay:
+        type: log
+        base: 10
+        minval: -4
+        maxval: -1
+    beta1:
+        type: double
+        minval: 0.1
+        maxval: 0.999
+    beta2:
+        type: double
+        minval: 0.1
+        maxval: 0.999
+    gamma: 0.1
+min_validation_period:
+    epochs: 1
+searcher:
+    name: adaptive_asha
+    metric: val_accuracy
+    smaller_is_better: false
+    max_length: 
+      epochs: 1
+    max_trials: 3
+    mode: aggressive
+resources:
+    slots_per_trial: 1
+entrypoint: model_def:MyMEDMnistTrial
+max_restarts: 0
+
