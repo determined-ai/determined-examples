@@ -42,4 +42,4 @@ python determined_sdk_demo.py
 - [Wesley Turner](https://github.com/wes-turner)
 - [Kevin Musgrave](https://github.com/KevinMusgrave)
 
-The code in the `medmnist_model` directory is based on the [`determined_medmnist_e2e`](https://github.com/ighodgao/determined_medmnist_e2e) repo by [Isha Ghodgaonkar](ighodgao).
+The code in the `medmnist_model` directory is based on the [`determined_medmnist_e2e`](https://github.com/ighodgao/determined_medmnist_e2e) repo by [Isha Ghodgaonkar](https://github.com/ighodgao).

@@ -1,6 +1,6 @@
 # DeepSpeed CIFAR Example
 This example is adapted from the 
-[CIFAR example in the DeepSpeedExamples](https://github.com/microsoft/DeepSpeedExamples/tree/master/cifar) 
+[CIFAR example in the DeepSpeedExamples](https://github.com/microsoft/DeepSpeedExamples/tree/master/training/cifar) 
 repository. It is intended to demonstrate a simple usecase of DeepSpeed with Determined.
 
 ## Files

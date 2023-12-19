@@ -49,7 +49,7 @@ to save and look for the cache file, make sure to set the `data.use_bind_mount` 
 fields correctly in the experiment configuration.
 
 ### Data
-The data used for this script was fetched based on Huggingface's [SQuAD page](https://github.com/huggingface/transformers/tree/master/examples/question-answering).
+The data used for this script was fetched based on Huggingface's [SQuAD page](https://github.com/huggingface/transformers/tree/main/examples/pytorch/question-answering).
 
 The data will be automatically downloaded and saved before training. If you use a `bind_mount`, the 
 data will be saved between experiments and will not need to be downloaded again.

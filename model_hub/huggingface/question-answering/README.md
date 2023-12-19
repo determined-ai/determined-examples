@@ -2,9 +2,9 @@
 The examples here mirror the [question answering examples](https://github.com/huggingface/transformers/tree/master/examples/pytorch/question-answering) from the original huggingface transformers repo.
 
 ## Files
-* **qa_trial.py**: The [PyTorchTrial definition](https://docs.determined.ai/latest/reference/api/pytorch.html#pytorch-trial) for question-answering on SQuAD. A few class methods are overwritten and specialized for text classification but otherwise the behavior is the same as the [BaseTransformerTrial class](../model_hub/transformers/_trial.py).
+* **qa_trial.py**: The [PyTorchTrial definition](https://docs.determined.ai/latest/model-dev-guide/api-guides/apis-howto/api-pytorch-ug.html#pytorch-trial) for question-answering on SQuAD. A few class methods are overwritten and specialized for text classification but otherwise the behavior is the same as the [BaseTransformerTrial class](https://github.com/determined-ai/determined/blob/main/model_hub/model_hub/huggingface/_trial.py).
 * **data.py**: data pre and post-processing for question answering.
-* **qa_beam_search_trial.py**: The [PyTorchTrial definition](https://docs.determined.ai/latest/reference/api/pytorch.html#pytorch-trial) for question-answering with beam search. A few class methods are overwritten and specialized for text classification but otherwise the behavior is the same as the [BaseTransformerTrial class](../model_hub/transformers/_trial.py).
+* **qa_beam_search_trial.py**: The [PyTorchTrial definition](https://docs.determined.ai/latest/model-dev-guide/api-guides/apis-howto/api-pytorch-ug.html#pytorch-trial) for question-answering with beam search. A few class methods are overwritten and specialized for text classification but otherwise the behavior is the same as the [BaseTransformerTrial class](https://github.com/determined-ai/determined/blob/main/model_hub/model_hub/huggingface/_trial.py).
 * **data_beam_search.py**: data pre and post-processing for question answering with beam search.
 
 ### Configuration Files

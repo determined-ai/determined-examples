@@ -2,7 +2,7 @@
 We have provided a default [Determined experiment configuration for Mask-RCNN on COCO 2017](./maskrcnn.yaml) as the starting point.
 
 ## Configuring MMDetection
-MMDetection has [its own configuration system](https://mmdetection.readthedocs.io/en/latest/tutorials/config.html) for specifying the dataset, model, optimizer, and other objects used during training.  Customizing MMDetection primarily amounts to specifying
+MMDetection has [its own configuration system](https://mmdetection.readthedocs.io/en/v2.27.0/tutorials/config.html) for specifying the dataset, model, optimizer, and other objects used during training.  Customizing MMDetection primarily amounts to specifying
 your own MMDetection configs and we preserve this when using MMDetection with Determined.  Hence, similar to directly using MMDetection, you will need to be familiar with MMDetection's configurable objects in order to get more custom behavior.
 
 We will cover how to specify and manipulate a *MMDetection config* in the experiment configuration below.  
@@ -56,7 +56,7 @@ field to turn on gradient clipping and mixed precision.
 
 ### Other experiment config fields
 #### Data backends
-We support `s3`, and `gcs` backends in addition to the [file client backends supported by MMCV](https://mmcv.readthedocs.io/en/latest/_modules/mmcv/fileio/file_client.html#FileClient) so you can easily access data in cloud storage buckets.  Note that MMDetection expects the data to follow [a particular structure for standard datasets](https://mmdetection.readthedocs.io/en/latest/1_exist_data_model.html#test-existing-models-on-standard-datasets) like COCO, Pascal, Cityscapes.
+We support `s3`, and `gcs` backends in addition to the [file client backends supported by MMCV](https://mmcv.readthedocs.io/en/v1.7.0/_modules/mmcv/fileio/file_client.html#FileClient) so you can easily access data in cloud storage buckets.  Note that MMDetection expects the data to follow [a particular structure for standard datasets](https://mmdetection.readthedocs.io/en/v2.27.0/1_exist_data_model.html#test-existing-models-on-standard-datasets) like COCO, Pascal, Cityscapes.
 
 You can change the backend by modifying the `data.file_client_args` section of the experiment config.
 
@@ -67,10 +67,10 @@ The `hyperparameters.global_batch_size` field of the Determined experiment confi
 MMDetection provides pretrained checkpoints corresponding to some of the configurations as listed in the `README` files for each model type.  If a pretrained weight is available for the specified `config_file`, you can warmstart the model with these weights by setting `hyperparameters.use_pretrained` to `true`.  
 
 ## Using custom dataset
-Training MMDetection on custom datasets in Determined is largely the same process as doing so directly with MMDetection.  Please follow [this guide](https://mmdetection.readthedocs.io/en/latest/tutorials/customize_dataset.html) from MMDetection to register your own datasets.
+Training MMDetection on custom datasets in Determined is largely the same process as doing so directly with MMDetection.  Please follow [this guide](https://mmdetection.readthedocs.io/en/v2.27.0/tutorials/customize_dataset.html) from MMDetection to register your own datasets.
 
 ## Adding classes
-Creating custom classes for models, otpimizers, losses, and other MMDetection objects also requires following the same process as you would normally.  Please see the [MMDetection tutorials](https://mmdetection.readthedocs.io/en/latest/tutorials/customize_models.html) for more info.
+Creating custom classes for models, otpimizers, losses, and other MMDetection objects also requires following the same process as you would normally.  Please see the [MMDetection tutorials](https://mmdetection.readthedocs.io/en/v2.27.0/tutorials/customize_models.html) for more info.
 
 ## Results
 The validation bounding box mAP for Faster-RCNN is shown in the image below.
@@ -84,4 +84,4 @@ under `docs/install-admin.html` or at https://docs.determined.ai/latest/index.ht
 Make sure the environment variable `DET_MASTER` is set to your cluster URL.
 Then you run the following command from the command line: `det experiment create -f <experiment_config> .`. 
 
-For modular and composable configuration, please check out how to [use MMDetection with Facebook's hydra](./hydra/README.md`).
+For modular and composable configuration, please check out how to [use MMDetection with Facebook's hydra](./hydra/README.md).

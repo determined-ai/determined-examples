@@ -2,7 +2,7 @@
 
 This example shows how to build a simple CNN on the CIFAR-10 dataset using
 Determined's PyTorch API. This example is adapted from this [Keras CNN
-example](https://github.com/fchollet/keras/blob/master/examples/cifar10_cnn.py).
+example](https://github.com/keras-team/keras/blob/keras-2/examples/cifar10_cnn.py).
 
 ## Files
 * **model_def.py**: The core code for the model. This includes building and compiling the model.

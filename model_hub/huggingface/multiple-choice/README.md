@@ -2,7 +2,7 @@
 This example mirrors the [multiple choice example](https://github.com/huggingface/transformers/tree/master/examples/pytorch/multiple-choice) from the original huggingface transformers repo for finetuning on the SWAG dataset.
 
 ## Files
-* **swag_trial.py**: The [PyTorchTrial definition](https://docs.determined.ai/latest/reference/api/pytorch.html#pytorch-trial) for this example. A few class methods are overwritten and specialized for named-entity recognition but otherwise the behavior is the same as the [BaseTransformerTrial class](../model_hub/transformers/_trial.py).
+* **swag_trial.py**: The [PyTorchTrial definition](https://docs.determined.ai/latest/model-dev-guide/api-guides/apis-howto/api-pytorch-ug.html#pytorch-trial) for this example. A few class methods are overwritten and specialized for named-entity recognition but otherwise the behavior is the same as the [BaseTransformerTrial class](https://github.com/determined-ai/determined/blob/main/model_hub/model_hub/huggingface/_trial.py).
 * **data.py**: Modifies ``DataCollatorForMultipleChoice`` to work with PyTorchTrial.
 
 ### Configuration FIles

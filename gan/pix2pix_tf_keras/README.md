@@ -40,6 +40,6 @@ The following image was created using a model trained with `const.yaml`.
 
 ## Results
 The following plots show differences in performance made when utilizing GPUs with the Determined distributed system.
-![Cumulative Batches vs. Time](./images/batches_vs_time.png)
-![Training Loss vs. Time](./images/training_loss_vs_time.png)
-![Validation Loss vs. Time](./images/validation_loss_vs_time.png)
+![Cumulative Batches vs. Time](./images/batches_vs_time.jpg)
+![Training Loss vs. Time](./images/training_loss_vs_time.jpg)
+![Validation Loss vs. Time](./images/validation_loss_vs_time.jpg)

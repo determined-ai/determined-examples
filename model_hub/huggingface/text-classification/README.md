@@ -4,7 +4,7 @@ The two examples here mirror the [text-classification examples](https://github.c
 ## GLUE Benchmark
 
 ### Files
-* **glue_trial.py**: The [PyTorchTrial definition](https://docs.determined.ai/latest/reference/api/pytorch.html#pytorch-trial) for this example. A few class methods are overwritten and specialized for text classification but otherwise the behavior is the same as the [BaseTransformerTrial class](../model_hub/transformers/_trial.py).
+* **glue_trial.py**: The [PyTorchTrial definition](https://docs.determined.ai/latest/model-dev-guide/api-guides/apis-howto/api-pytorch-ug.html#pytorch-trial) for this example. A few class methods are overwritten and specialized for text classification but otherwise the behavior is the same as the [BaseTransformerTrial class](https://github.com/determined-ai/determined/blob/main/model_hub/model_hub/huggingface/_trial.py).
 
 #### Configuration Files
 * **glue_config.yaml**: Experiment configuration for finetuning on GLUE datasets with Bert.  
@@ -32,7 +32,7 @@ Using the provided experiment config `glue_config.yaml` yields a Matthew's Corre
 ## XNLI Dataset
 
 ### Files
-* **xnli_trial.py**: The [PyTorchTrial definition](https://docs.determined.ai/latest/reference/api/pytorch.html#pytorch-trial) for this example. A few class methods are overwritten and specialized for text classification on XNLI but otherwise the behavior is the same as the [BaseTransformerTrial class](../model_hub/transformers/_trial.py).
+* **xnli_trial.py**: The [PyTorchTrial definition](https://docs.determined.ai/latest/model-dev-guide/api-guides/apis-howto/api-pytorch-ug.html#pytorch-trial) for this example. A few class methods are overwritten and specialized for text classification on XNLI but otherwise the behavior is the same as the [BaseTransformerTrial class](https://github.com/determined-ai/determined/blob/main/model_hub/model_hub/huggingface/_trial.py).
 
 #### Configuration Files
 * **xnli_config.yaml**: Experiment configuration for finetuning on the XNLI dataset with Bert.

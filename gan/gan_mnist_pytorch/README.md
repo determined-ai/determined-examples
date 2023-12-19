@@ -2,7 +2,7 @@
 
 This example demonstrates how to build a simple GAN on the MNIST dataset using
 Determined's PyTorch API. This example is adapted from this [PyTorch Lightning GAN
-example](https://github.com/PyTorchLightning/pytorch-lightning/blob/master/pl_examples/domain_templates/generative_adversarial_net.py).
+example](https://github.com/Lightning-AI/pytorch-lightning/blob/master/examples/pytorch/domain_templates/generative_adversarial_net.py).
 
 ## Files
 * **model_def.py**: The core code for the model. This includes building and compiling the model.

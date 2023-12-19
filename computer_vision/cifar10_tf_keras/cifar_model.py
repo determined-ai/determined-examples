@@ -1,6 +1,6 @@
 """
 Original CIFAR-10 CNN Keras model code from:
-https://github.com/fchollet/keras/blob/master/examples/cifar10_cnn.py.
+https://github.com/keras-team/keras/blob/keras-2/examples/cifar10_cnn.py.
 """
 
 import numpy as np

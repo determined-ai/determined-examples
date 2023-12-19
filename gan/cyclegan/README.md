@@ -6,7 +6,7 @@ Determined implementation of [CycleGAN](https://github.com/eriklindernoren/PyTor
 
 - **determined_model_def.py** is the user model definition file for Determined-managed training. 
   This file is ported from **cyclegan.py** to implement the 
-  [Determined Pytorch API](https://docs.determined.ai/latest/reference/api/pytorch.html#pytorch-trial).
+  [Determined Pytorch API](https://docs.determined.ai/latest/model-dev-guide/api-guides/apis-howto/api-pytorch-ug.html#pytorch-trial).
 - **const.yaml** is the user configuration for Determined-managed training.
 - **startup-hook.sh** is the startup bash script that is used for downloading and 
   extracting the training data.
@@ -56,5 +56,5 @@ hyperparameters:
 * The throughput is unstable due to inter-node communication when the global batch size 
   is 64 and the aggregation frequency is 1. Use a larger batch size or a larger aggregation 
   frequency to increase the scaling efficiency of the throughput. See 
-  [Effective Distributed Training](https://docs.determined.ai/latest/topic-guides/effective-distributed-training.html#effective-distributed-training)
+  [Distributed Training Performance Optimization](https://docs.determined.ai/latest/model-dev-guide/dtrain/dtrain-introduction.html#performance-optimization)
   for details.

@@ -1,6 +1,6 @@
 # DeepSpeed CPU Offloading example
 This example is adapted from the 
-[CIFAR example in the DeepSpeedExamples](https://github.com/microsoft/DeepSpeedExamples/tree/master/cifar) 
+[CIFAR example in the DeepSpeedExamples](https://github.com/microsoft/DeepSpeedExamples/tree/master/training/cifar) 
 repository. It is intended to show how to configure 
 [ZeRO Stage 3 with CPU offloading](https://www.deepspeed.ai/tutorials/zero/) for a simple CNN network.
 
