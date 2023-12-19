@@ -10,7 +10,7 @@ Useful References:
     https://docs.determined.ai/latest/reference/api/keras.html
     https://www.tensorflow.org/guide/keras
 
-Based on: https://github.com/fchollet/keras/blob/master/examples/cifar10_cnn.py
+Based on: https://github.com/keras-team/keras/blob/keras-2/examples/cifar10_cnn.py
 
 """
 from typing import Generator, List, Tuple

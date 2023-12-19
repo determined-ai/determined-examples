@@ -3,7 +3,7 @@
 This example shows how to perform self-supervised image classifier training with BYOL using
 Determined's PyTorch API.  This example is based on the [byol-pytorch](https://github.com/lucidrains/byol-pytorch/tree/master/byol_pytorch) package.
 
-Original BYOL paper: https://arxiv.org/abs/2006.0
+Original BYOL paper: https://arxiv.org/abs/2006.07733
 
 Code and configuration details also sourced from the following BYOL implementations:
   - (JAX, paper authors) https://github.com/deepmind/deepmind-research/tree/master/byol

@@ -1,6 +1,6 @@
 # DeepSpeed CIFAR Example
 This example is adapted from the 
-[pipeline parallelism example in the DeepSpeedExamples](https://github.com/microsoft/DeepSpeedExamples/tree/master/pipeline_parallelism) 
+[pipeline parallelism example in the DeepSpeedExamples](https://github.com/microsoft/DeepSpeedExamples/tree/master/training/pipeline_parallelism) 
 repository. It is intended to demonstrate a simple usecase of DeepSpeed's PipelineEngine with Determined.
 
 ## Files

@@ -19,7 +19,7 @@ hyperparameters:
   merge_config: null # You can specify a config you want to merge into the config_file above.
   use_pretrained: false # Whether to load pretrained weights for config if available.
   override_mmdet_config:
-    ##### Learn more about mmdet configs: https://mmdetection.readthedocs.io/en/latest/tutorials/config.html #####
+    ##### Learn more about mmdet configs: https://mmdetection.readthedocs.io/en/v2.27.0/tutorials/config.html #####
     ##### You can specify gradient clipping with below #####
     optimizer_config._delete_: true
     optimizer_config.grad_clip.max_norm: 100

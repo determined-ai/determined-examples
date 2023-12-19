@@ -1,6 +1,6 @@
 """
 This file is not used in the Determined-managed training. We port this file to use the
-Determined Pytorch API (https://docs.determined.ai/latest/reference/api/pytorch.html#pytorch-trial).
+Determined Pytorch API (https://docs.determined.ai/latest/model-dev-guide/api-guides/apis-howto/api-pytorch-ug.html#pytorch-trial).
 """
 import argparse
 import os

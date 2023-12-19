@@ -2,7 +2,7 @@
 This example mirrors the [token-classification example](https://github.com/huggingface/transformers/tree/master/examples/pytorch/token-classification) from the original huggingface transformers repo for named-entity recognition.
 
 ## Files
-* **ner_trial.py**: The [PyTorchTrial definition](https://docs.determined.ai/latest/reference/api/pytorch.html#pytorch-trial) for this example. A few class methods are overwritten and specialized for named-entity recognition but otherwise the behavior is the same as the [BaseTransformerTrial class](../model_hub/transformers/_trial.py).
+* **ner_trial.py**: The [PyTorchTrial definition](https://docs.determined.ai/latest/model-dev-guide/api-guides/apis-howto/api-pytorch-ug.html#pytorch-trial) for this example. A few class methods are overwritten and specialized for named-entity recognition but otherwise the behavior is the same as the [BaseTransformerTrial class](https://github.com/determined-ai/determined/blob/main/model_hub/model_hub/huggingface/_trial.py).
 * **ner_utils.py**: Utility functions for NER largely extracted from [run_ner.py](https://github.com/huggingface/transformers/tree/master/examples/pytorch/token-classification/run_ner.py) to separate example code from Determined code.
 
 ### Configuration Files

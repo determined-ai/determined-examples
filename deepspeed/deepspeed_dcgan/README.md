@@ -1,6 +1,6 @@
 # DeepSpeed CIFAR Example
 This example is adapted from the
-[DCGAN example in the DeepSpeedExamples](https://github.com/microsoft/DeepSpeedExamples/tree/master/gan)
+[DCGAN example in the DeepSpeedExamples](https://github.com/microsoft/DeepSpeedExamples/tree/master/training/gan)
 repository. It is intended to demonstrate a simple usecase of DeepSpeed with Determined.
 
 ## Files
