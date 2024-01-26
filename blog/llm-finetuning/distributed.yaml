@@ -1,0 +1,36 @@
+name: language modeling distributed
+debug: false
+environment:
+  image: determinedai/environments-dev:python-3.10-pytorch-2.0-deepspeed-0.10.0-smartsim
+  environment_variables:
+    - NCCL_DEBUG=INFO
+    # - HF_HOME=
+resources:
+  slots_per_trial: 2
+  resource_pool: A100
+searcher:
+  name: single
+  max_length:
+    batches: 5000
+  metric: eval_accuracy
+  smaller_is_better: false
+hyperparameters:
+  model: "TinyLlama/TinyLlama-1.1B-Chat-v0.4"
+  dataset_subset: "easy"
+  training_args:
+    output_dir: "/tmp/llm_finetuning"
+    max_steps: 5000
+    per_device_train_batch_size: 1
+    per_device_eval_batch_size: 16
+    fp16: true
+    evaluation_strategy: "steps"
+    eval_steps: 1000
+    logging_strategy: "steps"
+    logging_steps: 1
+    save_strategy: "steps"
+    save_steps: 1000
+    learning_rate: 1e-5
+entrypoint: >-
+  python -m determined.launch.torch_distributed
+  python finetune.py
+max_restarts: 0

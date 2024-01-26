@@ -1,0 +1,4 @@
+transformers==4.36.2
+datasets==2.16.1
+evaluate==0.4.1
+trl==0.7.9
