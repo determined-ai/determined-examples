@@ -4,7 +4,7 @@ from determined.transformers import DetCallback
 from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
 from trl import DataCollatorForCompletionOnlyLM
 
-from chat_format import CHAT_ML_TEMPLATE, EOS_TOKEN, get_chat_format
+from chat_format import ASSISTANT_PROMPT, CHAT_ML_TEMPLATE, EOS_TOKEN, get_chat_format
 from dataset_utils import load_or_create_dataset
 
 
@@ -41,10 +41,7 @@ def main(training_args, det_callback, hparams):
     for k in dataset.keys():
         dataset[k] = dataset[k].map(tokenize)
 
-    response_template_with_context = "\nSQL query: [/INST]"
-    response_template_ids = tokenizer.encode(
-        response_template_with_context, add_special_tokens=False
-    )[1:]
+    response_template_ids = tokenizer.encode(ASSISTANT_PROMPT, add_special_tokens=False)
     collator = DataCollatorForCompletionOnlyLM(
         response_template_ids, tokenizer=tokenizer
     )
