@@ -4,6 +4,7 @@ import glob
 from determined.experimental import client
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
+from chat_format import ASSISTANT_PROMPT, CHAT_ML_TEMPLATE, EOS_TOKEN
 from dataset_utils import load_or_create_dataset
 from finetune import get_chat_format
 
@@ -22,13 +23,17 @@ def main(exp_id, dataset_subset):
         checkpoint_dir = glob.glob(f"{checkpoint_dir}/checkpoint-*")[0]
 
     model = AutoModelForCausalLM.from_pretrained(checkpoint_dir)
-    tokenizer = AutoTokenizer.from_pretrained(checkpoint_dir)
+    tokenizer = AutoTokenizer.from_pretrained(checkpoint_dir, eos_token=EOS_TOKEN)
+    tokenizer.chat_template = CHAT_ML_TEMPLATE
 
     dataset = load_or_create_dataset(dataset_subset)["test"]
     element = dataset[0]
     formatted = tokenizer.apply_chat_template(
-        get_chat_format(element)[:2], tokenize=False
+        get_chat_format(element)[:2],
+        tokenize=False,
     )
+    formatted += ASSISTANT_PROMPT
+
     print(formatted)
 
     inputs = tokenizer(formatted, return_tensors="pt")

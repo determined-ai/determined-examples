@@ -4,23 +4,8 @@ from determined.transformers import DetCallback
 from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
 from trl import DataCollatorForCompletionOnlyLM
 
+from chat_format import CHAT_ML_TEMPLATE, get_chat_format
 from dataset_utils import load_or_create_dataset
-
-
-def get_chat_format(element):
-    system_prompt = (
-        "You are a helpful programmer assistant that excels at SQL. "
-        "When prompted with a task and a definition of an SQL table, you "
-        "respond with a SQL query to retrieve information from the table. "
-        "Don't explain your reasoning, only provide the SQL query."
-    )
-    user_prompt = "Task: {instruction}\nSQL table: {input}\nSQL query: "
-
-    return [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_prompt.format_map(element)},
-        {"role": "assistant", "content": element["response"]},
-    ]
 
 
 def preprocess_logits_for_metrics(logits, labels):
@@ -35,6 +20,7 @@ def main(training_args, det_callback, hparams):
     model_name = hparams["model"]
     model = AutoModelForCausalLM.from_pretrained(model_name)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
+    tokenizer.chat_template = CHAT_ML_TEMPLATE
 
     def tokenize(element):
         formatted = tokenizer.apply_chat_template(
