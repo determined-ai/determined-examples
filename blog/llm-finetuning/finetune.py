@@ -4,8 +4,15 @@ from determined.transformers import DetCallback
 from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
 from trl import DataCollatorForCompletionOnlyLM
 
-from chat_format import CHAT_ML_TEMPLATE, get_chat_format
+from chat_format import CHAT_ML_TEMPLATE, EOS_TOKEN, get_chat_format
 from dataset_utils import load_or_create_dataset
+
+
+def get_model_and_tokenizer(model_name):
+    model = AutoModelForCausalLM.from_pretrained(model_name)
+    tokenizer = AutoTokenizer.from_pretrained(model_name, eos_token=EOS_TOKEN)
+    tokenizer.chat_template = CHAT_ML_TEMPLATE
+    return model, tokenizer
 
 
 def preprocess_logits_for_metrics(logits, labels):
@@ -18,9 +25,7 @@ def preprocess_logits_for_metrics(logits, labels):
 
 def main(training_args, det_callback, hparams):
     model_name = hparams["model"]
-    model = AutoModelForCausalLM.from_pretrained(model_name)
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    tokenizer.chat_template = CHAT_ML_TEMPLATE
+    model, tokenizer = get_model_and_tokenizer(model_name)
 
     def tokenize(element):
         formatted = tokenizer.apply_chat_template(
