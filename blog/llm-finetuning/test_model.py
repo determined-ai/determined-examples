@@ -25,6 +25,7 @@ def main(exp_id, dataset_subset):
     model = AutoModelForCausalLM.from_pretrained(checkpoint_dir)
     tokenizer = AutoTokenizer.from_pretrained(checkpoint_dir, eos_token=EOS_TOKEN)
     tokenizer.chat_template = CHAT_ML_TEMPLATE
+    eos_token_id = tokenizer.get_vocab()[EOS_TOKEN]
 
     dataset = load_or_create_dataset(dataset_subset)["test"]
     element = dataset[0]
@@ -37,7 +38,7 @@ def main(exp_id, dataset_subset):
     print(formatted)
 
     inputs = tokenizer(formatted, return_tensors="pt")
-    outputs = model.generate(**inputs, eos_token_id=2, max_new_tokens=1000)
+    outputs = model.generate(**inputs, eos_token_id=eos_token_id, max_new_tokens=1000)
     input_length = inputs["input_ids"].shape[1]
     response = tokenizer.batch_decode(
         outputs[:, input_length:], skip_special_tokens=True
