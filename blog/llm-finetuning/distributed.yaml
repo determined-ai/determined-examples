@@ -1,13 +1,10 @@
 name: language modeling distributed
 debug: false
 environment:
-  image: determinedai/environments-dev:python-3.10-pytorch-2.0-deepspeed-0.10.0-smartsim
   environment_variables:
     - NCCL_DEBUG=INFO
-    # - HF_HOME=
 resources:
   slots_per_trial: 2
-  resource_pool: A100
 searcher:
   name: single
   max_length:
@@ -26,7 +23,7 @@ hyperparameters:
     evaluation_strategy: "steps"
     eval_steps: 1000
     logging_strategy: "steps"
-    logging_steps: 1
+    logging_steps: 100
     save_strategy: "steps"
     save_steps: 1000
     learning_rate: 1e-5
