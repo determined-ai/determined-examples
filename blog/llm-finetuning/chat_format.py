@@ -10,7 +10,7 @@ CHAT_ML_TEMPLATE = """
 {% endfor %}
 """
 
-ASSISTANT_PROMPT = "<|im_start|>assistant"
+ASSISTANT_PROMPT = "<|im_start|>assistant\n"
 
 EOS_TOKEN = "<|im_end|>"
 
