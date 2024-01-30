@@ -1,6 +1,8 @@
 # LLM Finetuning using HuggingFace + Determined
 
-First install Determined on your local machine:
+In this demo, we finetune the [TinyLlama-1.1B-Chat](https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v0.4) on a [text-to-SQL dataset](https://huggingface.co/datasets/Clinton/Text-to-sql-v1). We ran this on two 80 GB A100 GPUs.
+
+To get started, first install Determined on your local machine:
 ```bash
 pip install determined
 ```
@@ -10,7 +12,11 @@ Then finetune:
 det e create distributed.yaml . 
 ```
 
-Change configuration options in `distributed.yaml`.
+Change configuration options in `distributed.yaml`. Some important options are:
+- `slots_per_trial`: the number of GPUs to use.
+- `dataset_subset`: the difficulty subset to train on.
+- `per_device_train_batch_size`: the batch size per GPU.
+
 
 Test your model's generation capabilities:
 
