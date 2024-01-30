@@ -1,4 +1,4 @@
-name: language modeling distributed
+name: Text-to-SQL
 debug: false
 environment:
   environment_variables:
@@ -18,7 +18,7 @@ hyperparameters:
     output_dir: "/tmp/llm_finetuning"
     max_steps: 5000
     per_device_train_batch_size: 1
-    per_device_eval_batch_size: 16
+    per_device_eval_batch_size: 4
     fp16: true
     evaluation_strategy: "steps"
     eval_steps: 1000
