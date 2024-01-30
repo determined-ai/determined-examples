@@ -11,7 +11,8 @@ This repository contains a variety of Determined examples that are not actively 
 ## Blog posts
 | Example                                 | Description                                                                  |
 |:---------------------------------------:|:----------------------------------------------------------------------------:|
-| [Python SDK demo](blog/python_sdk_demo) | Example usage of the Determined Python SDK to run and administer experiments |
+| [LLM Finetuning](blog/llm-finetuning) | Finetuning the TinyLlama-1.1B Model on Text-to-SQL. |
+| [Python SDK demo](blog/python_sdk_demo) | Example usage of the Determined Python SDK to run and administer experiments. |
 
 ## Computer Vision
 
