@@ -1,4 +1,5 @@
 name: cifar10_pytorch_const
+description: An example experiment using Determined AI with CIFAR10 and PyTorch.
 hyperparameters:
   learning_rate: 1.0e-4
   learning_rate_decay: 1.0e-6
