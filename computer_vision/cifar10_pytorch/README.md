@@ -10,8 +10,8 @@ example](https://github.com/keras-team/keras/blob/keras-2/examples/cifar10_cnn.p
 ### Configuration Files
 * **const.yaml**: Train the model with constant hyperparameter values.
 * **adaptive.yaml**: Perform a hyperparameter search using Determined's state-of-the-art adaptive hyperparameter tuning algorithm.
-* **distributed.yaml**: Same as `const.yaml`, but trains the model with multiple GPUs (distributed training).
-* **distributed_inference_example.yaml**: Use the distributed training workflow with PyTorchTrial to accelerate batch inference workloads.
+* **distributed_training.yaml**: Same as `const.yaml`, but trains the model with multiple GPUs (distributed training).
+* **distributed_inference.yaml**: Use the distributed training workflow with PyTorchTrial to accelerate batch inference workloads.
 
 ## Data
 The CIFAR-10 dataset is downloaded from https://www.cs.toronto.edu/~kriz/cifar.html.
