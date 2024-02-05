@@ -1,11 +1,10 @@
 name: distributed_inference_example
+description: An example using Determined AI with CIFAR10, PyTorch and distributed batch inference.
 entrypoint: >-
   python3 -m determined.launch.torch_distributed
   python3 inference_example.py
-
 resources:
   slots_per_trial: 2
-
 searcher:
   name: grid
   metric: x
@@ -31,7 +30,6 @@ hyperparameters:
       - 12
       - 13
       - 14
-
 max_restarts: 0
 bind_mounts:
   - host_path: /tmp
