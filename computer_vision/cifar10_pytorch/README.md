@@ -9,8 +9,9 @@ example](https://github.com/keras-team/keras/blob/keras-2/examples/cifar10_cnn.p
 
 ### Configuration Files
 * **const.yaml**: Train the model with constant hyperparameter values.
-* **distributed.yaml**: Same as `const.yaml`, but trains the model with multiple GPUs (distributed training).
 * **adaptive.yaml**: Perform a hyperparameter search using Determined's state-of-the-art adaptive hyperparameter tuning algorithm.
+* **distributed.yaml**: Same as `const.yaml`, but trains the model with multiple GPUs (distributed training).
+* **distributed_inference.yaml**: Use the distributed training workflow with PyTorchTrial to accelerate batch inference workloads.
 
 ## Data
 The CIFAR-10 dataset is downloaded from https://www.cs.toronto.edu/~kriz/cifar.html.
@@ -19,10 +20,9 @@ The CIFAR-10 dataset is downloaded from https://www.cs.toronto.edu/~kriz/cifar.h
 If you have not yet installed Determined, installation instructions can be found
 under `docs/install-admin.html` or at https://docs.determined.ai/latest/index.html
 
-Run the following command: `det -m <master host:port> experiment create -f
+Run the following command: `det -m <master-host:port> experiment create -f
 const.yaml .`. The other configurations can be run by specifying the appropriate
 configuration file in place of `const.yaml`.
 
 ## Results
-Training the model with the hyperparameter settings in `const.yaml` should yield
-a validation accuracy of ~74%.
+Training the model with the hyperparameter settings in `const.yaml` should yield a validation accuracy of ~74%.

@@ -1,4 +1,5 @@
 name: cifar10_pytorch_adaptive_search
+description: An example experiment of hyperparameter tuning using Determined AI with CIFAR10 and PyTorch.
 hyperparameters:
   learning_rate:
     type: log
