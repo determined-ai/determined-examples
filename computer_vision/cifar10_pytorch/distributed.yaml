@@ -1,4 +1,4 @@
-name: cifar10_pytorch_distributed_training
+name: cifar10_pytorch_distributed
 description: An example experiment using Determined AI with CIFAR10, PyTorch and distributed multi-GPU training.
 hyperparameters:
   learning_rate: 1.0e-4
