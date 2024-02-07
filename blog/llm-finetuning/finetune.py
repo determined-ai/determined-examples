@@ -8,7 +8,7 @@ from determined.transformers import DetCallback
 from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
 from trl import DataCollatorForCompletionOnlyLM
 import sys
-from chat_format import ASSISTANT_PROMPT, CHAT_ML_TEMPLATE, EOS_TOKEN, get_chat_format
+from chat_format import get_response_template_ids, set_special_tokens, get_chat_format
 from dataset_utils import load_or_create_dataset
 
 logger = logging.getLogger(__name__)
@@ -17,20 +17,16 @@ logger = logging.getLogger(__name__)
 def get_model_and_tokenizer(model_name):
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        use_auth_token="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",
+        use_auth_token="<auth_token>"
     )
     tokenizer = AutoTokenizer.from_pretrained(
         model_name,
-        use_auth_token="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",
+        use_auth_token="<auth_token>",
         padding_side="left",
         truncation_side="right",
         add_eos_token=True,
     )
-    if model_name == "TinyLlama/TinyLlama-1.1B-Chat-v0.4":
-        tokenizer.chat_template = CHAT_ML_TEMPLATE
-        tokenizer.eos_token = EOS_TOKEN
-    if tokenizer.pad_token_id is None:
-        tokenizer.pad_token_id = tokenizer.eos_token_id
+    set_special_tokens(tokenizer, model_name)
 
     return model, tokenizer
 
@@ -49,7 +45,7 @@ def main(training_args, det_callback, hparams):
 
     def tokenize(element):
         formatted = tokenizer.apply_chat_template(
-            get_chat_format(element), tokenize=False
+            get_chat_format(element, model_name), tokenize=False
         )
         outputs = tokenizer(formatted, padding=True, truncation=True, max_length=1024)
         logging.error(f"type(output_ids_={type(outputs['input_ids'])}")
@@ -63,12 +59,7 @@ def main(training_args, det_callback, hparams):
     for k in dataset.keys():
         dataset[k] = dataset[k].map(tokenize, remove_columns=column_names)
 
-    if model_name == "TinyLlama/TinyLlama-1.1B-Chat-v0.4":
-        response_template_ids = tokenizer.encode(
-            ASSISTANT_PROMPT, add_special_tokens=False
-        )
-    else:
-        response_template_ids = tokenizer.encode("[/INST]", add_special_tokens=False)
+    response_template_ids = get_response_template_ids(tokenizer, model_name)
     collator = DataCollatorForCompletionOnlyLM(
         response_template_ids, tokenizer=tokenizer
     )
