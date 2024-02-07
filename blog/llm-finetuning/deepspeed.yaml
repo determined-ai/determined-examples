@@ -1,13 +1,13 @@
 name: deepspeed easy
 debug: false
-workspace: agnieszka
-project: llm-blog
+workspace: Kevin
+project: LLMBlog1
 environment:
   environment_variables:
     - NCCL_DEBUG=INFO
-    - HF_HOME=/nvmefs1/agnieszka.ciborowska
+    - HF_HOME=/nvmefs1/kevin.musgrave/hf_cache
 resources:
-  slots_per_trial: 4
+  slots_per_trial: 2
   resource_pool: A100
 searcher:
   name: single
@@ -16,7 +16,7 @@ searcher:
   metric: eval_accuracy
   smaller_is_better: false
 hyperparameters:
-  model: "meta-llama/Llama-2-7b-hf"
+  model: "mistralai/Mistral-7B-Instruct-v0.2"
   dataset_subset: "easy"
   training_args:
     output_dir: "/tmp/llm_finetuning"
@@ -36,8 +36,8 @@ entrypoint: >-
   python -m determined.launch.deepspeed
   python finetune.py
 max_restarts: 0
-bind_mounts:
-  - container_path: /nvmefs1/agnieszka.ciborowska
-    host_path: /nvmefs1/agnieszka.ciborowska
-    propagation: rprivate
-    read_only: false
+# bind_mounts:
+#   - container_path: /nvmefs1/agnieszka.ciborowska
+#     host_path: /nvmefs1/agnieszka.ciborowska
+#     propagation: rprivate
+#     read_only: false

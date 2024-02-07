@@ -15,17 +15,20 @@ ASSISTANT_PROMPT = "<|im_start|>assistant\n"
 EOS_TOKEN = "<|im_end|>"
 
 
-def get_chat_format(element):
-    system_prompt = (
-        "You are a helpful programmer assistant that excels at SQL. "
-        "When prompted with a task and a definition of an SQL table, you "
-        "respond with a SQL query to retrieve information from the table. "
-        "Don't explain your reasoning, only provide the SQL query."
-    )
+def get_chat_format(element, with_system_prompt=False):
     user_prompt = "Task: {instruction}\nSQL table: {input}\nSQL query: "
-
-    return [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_prompt.format_map(element)},
+    output = [        {"role": "user", "content": user_prompt.format_map(element)},
         {"role": "assistant", "content": element["response"]},
     ]
+
+    if with_system_prompt:
+        system_prompt = (
+            "You are a helpful programmer assistant that excels at SQL. "
+            "When prompted with a task and a definition of an SQL table, you "
+            "respond with a SQL query to retrieve information from the table. "
+            "Don't explain your reasoning, only provide the SQL query."
+        )
+        output = [{"role": "system", "content": system_prompt}] + output
+    
+    return output
+

@@ -17,11 +17,11 @@ logger = logging.getLogger(__name__)
 def get_model_and_tokenizer(model_name):
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        use_auth_token="<ADD_YOUR_TOKEN>",
+        use_auth_token="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",
     )
     tokenizer = AutoTokenizer.from_pretrained(
         model_name,
-        use_auth_token="<ADD_YOUR_TOKEN>",
+        use_auth_token="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",
         padding_side="left",
         truncation_side="right",
         add_eos_token=True,
