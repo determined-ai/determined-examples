@@ -47,3 +47,11 @@ def get_response_template_ids(tokenizer, model_name):
         return tokenizer.encode(CHAT_ML_ASSISTANT_PROMPT, add_special_tokens=False)
     else:
         return tokenizer.encode("[/INST]", add_special_tokens=False)
+
+
+def get_tokenizer_max_length(dataset_difficulty, model_name):
+    if model_name == "TinyLlama/TinyLlama-1.1B-Chat-v0.4":
+        return {"easy": 502, "medium": 936, "hard": 2747}[dataset_difficulty]
+    elif model_name == "mistralai/Mistral-7B-Instruct-v0.2":
+        return {"easy": 438, "medium": 910, "hard": 2676}[dataset_difficulty]
+    return 1024
