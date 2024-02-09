@@ -1,4 +1,4 @@
-name: deepspeed easy
+name: deepspeed hard
 debug: false
 workspace: Kevin
 project: LLMBlog1
@@ -17,7 +17,7 @@ searcher:
   smaller_is_better: false
 hyperparameters:
   model: "mistralai/Mistral-7B-Instruct-v0.2"
-  dataset_subset: "easy"
+  dataset_subset: "hard"
   training_args:
     output_dir: "/tmp/llm_finetuning"
     max_steps: 5000
