@@ -1,10 +1,14 @@
 name: Text-to-SQL
 debug: false
+workspace: Kevin
+project: LLMBlog1
 environment:
   environment_variables:
     - NCCL_DEBUG=INFO
+    - HF_HOME=/nvmefs1/kevin.musgrave/hf_cache
 resources:
   slots_per_trial: 2
+  resource_pool: A100
 searcher:
   name: single
   max_length:

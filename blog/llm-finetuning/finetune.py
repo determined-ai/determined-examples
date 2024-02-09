@@ -1,4 +1,5 @@
 import logging
+import sys
 
 import datasets
 import determined as det
@@ -7,8 +8,8 @@ import transformers
 from determined.transformers import DetCallback
 from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
 from trl import DataCollatorForCompletionOnlyLM
-import sys
-from chat_format import get_response_template_ids, set_special_tokens, get_chat_format
+
+from chat_format import get_chat_format, get_response_template_ids, set_special_tokens
 from dataset_utils import load_or_create_dataset
 
 logger = logging.getLogger(__name__)
@@ -17,11 +18,9 @@ logger = logging.getLogger(__name__)
 def get_model_and_tokenizer(model_name):
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        use_auth_token="<auth_token>"
     )
     tokenizer = AutoTokenizer.from_pretrained(
         model_name,
-        use_auth_token="<auth_token>",
         padding_side="left",
         truncation_side="right",
         add_eos_token=True,
@@ -48,7 +47,7 @@ def main(training_args, det_callback, hparams):
             get_chat_format(element, model_name), tokenize=False
         )
         outputs = tokenizer(formatted, padding=True, truncation=True, max_length=1024)
-        logging.error(f"type(output_ids_={type(outputs['input_ids'])}")
+        # logging.error(f"type(output_ids_={type(outputs['input_ids'])}")
         return {
             "input_ids": outputs["input_ids"],
             "attention_mask": outputs["attention_mask"],
@@ -80,12 +79,16 @@ def main(training_args, det_callback, hparams):
 
         decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
         decoded_preds = tokenizer.batch_decode(preds, skip_special_tokens=True)
+
+        logging.error(f"decoded_labels:{decoded_labels[0]}")
+        logging.error(f"decoded_preds:{decoded_preds[0]}")
+
         bleu_score = bleu.compute(predictions=decoded_preds, references=decoded_labels)
         accuracy = acc.compute(predictions=preds[~mask], references=labels[~mask])
 
         return {**bleu_score, **accuracy}
 
-    logging.error(f"dataset={dataset['train'][0]}")
+    # logging.error(f"dataset={dataset['train'][0]}")
 
     trainer = Trainer(
         args=training_args,
