@@ -21,6 +21,9 @@ def get_model_and_tokenizer(model_name):
     )
     tokenizer = AutoTokenizer.from_pretrained(
         model_name,
+        padding_side="left",
+        truncation_side="right",
+        add_eos_token=True,
     )
     set_special_tokens(tokenizer, model_name)
 
@@ -29,7 +32,7 @@ def get_model_and_tokenizer(model_name):
 
 def get_tokenize_fn(tokenizer):
     def fn(formatted):
-        return tokenizer(formatted, padding="longest")
+        return tokenizer(formatted, padding=True, truncation=True, max_length=1024)
 
     return fn
 
