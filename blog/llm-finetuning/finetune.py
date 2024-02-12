@@ -21,13 +21,17 @@ def get_model_and_tokenizer(model_name):
     )
     tokenizer = AutoTokenizer.from_pretrained(
         model_name,
-        padding_side="left",
-        truncation_side="right",
-        add_eos_token=True,
     )
     set_special_tokens(tokenizer, model_name)
 
     return model, tokenizer
+
+
+def get_tokenize_fn(tokenizer):
+    def fn(formatted):
+        return tokenizer(formatted, padding="longest")
+
+    return fn
 
 
 def preprocess_logits_for_metrics(logits, labels):
@@ -41,12 +45,13 @@ def preprocess_logits_for_metrics(logits, labels):
 def main(training_args, det_callback, hparams):
     model_name = hparams["model"]
     model, tokenizer = get_model_and_tokenizer(model_name)
+    tokenize_fn = get_tokenize_fn(tokenizer)
 
     def tokenize(element):
         formatted = tokenizer.apply_chat_template(
             get_chat_format(element, model_name), tokenize=False
         )
-        outputs = tokenizer(formatted, padding=True, truncation=True, max_length=1024)
+        outputs = tokenize_fn(formatted)
         # logging.error(f"type(output_ids_={type(outputs['input_ids'])}")
         return {
             "input_ids": outputs["input_ids"],

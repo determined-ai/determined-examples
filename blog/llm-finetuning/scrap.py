@@ -6,10 +6,11 @@ import tqdm
 
 from chat_format import get_chat_format, get_response_template_ids
 from dataset_utils import load_or_create_dataset
-from finetune import get_model_and_tokenizer
+from finetune import get_model_and_tokenizer, get_tokenize_fn
 
-model_name = "TinyLlama/TinyLlama-1.1B-Chat-v0.4"
+model_name = "mistralai/Mistral-7B-Instruct-v0.2"
 model, tokenizer = get_model_and_tokenizer(model_name)
+tokenize_fn = get_tokenize_fn(tokenizer)
 num_incompatible = defaultdict(lambda: defaultdict(int))
 
 
@@ -26,11 +27,7 @@ def get_collate_fn(difficulty, split):
                     get_chat_format(e, model_name), tokenize=False
                 )
             )
-        element = tokenizer(
-            formatted,
-            padding="longest",
-            truncation=True,
-        )["input_ids"]
+        element = tokenize_fn(formatted)["input_ids"]
         response_template = to_str(get_response_template_ids(tokenizer, model_name))
         for i, e in enumerate(element):
             if response_template not in to_str(e):
