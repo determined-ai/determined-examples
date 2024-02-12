@@ -15,12 +15,14 @@ CHAT_ML_ASSISTANT_PROMPT = "<|im_start|>assistant\n"
 CHAT_ML_EOS_TOKEN = "<|im_end|>"
 
 
-def get_chat_format(element, model_name):
+def get_chat_format(element, model_name, with_assistant_response=True):
     user_prompt = "Task: {instruction}\nSQL table: {input}\nSQL query: "
     output = [
         {"role": "user", "content": user_prompt.format_map(element)},
-        {"role": "assistant", "content": element["response"]},
     ]
+
+    if with_assistant_response:
+        output.append({"role": "assistant", "content": element["response"]})
 
     if model_name != "mistralai/Mistral-7B-Instruct-v0.2":
         system_prompt = (
@@ -47,3 +49,10 @@ def get_response_template_ids(tokenizer, model_name):
         return tokenizer.encode(CHAT_ML_ASSISTANT_PROMPT, add_special_tokens=False)
     else:
         return tokenizer.encode("[/INST]", add_special_tokens=False)
+
+
+def maybe_add_generation_prompt(x, model_name):
+    if model_name == "TinyLlama/TinyLlama-1.1B-Chat-v0.4":
+        return x + CHAT_ML_ASSISTANT_PROMPT
+    else:
+        return x
