@@ -1,37 +1,44 @@
-import tqdm
+from collections import defaultdict
+from pprint import pprint
+
 import torch
+import tqdm
+
 from chat_format import get_chat_format, get_response_template_ids
 from dataset_utils import load_or_create_dataset
 from finetune import get_model_and_tokenizer
 
-model_name = "mistralai/Mistral-7B-Instruct-v0.2"
+model_name = "TinyLlama/TinyLlama-1.1B-Chat-v0.4"
 model, tokenizer = get_model_and_tokenizer(model_name)
+num_incompatible = defaultdict(lambda: defaultdict(int))
 
 
 def to_str(ids):
     return ",".join([str(i) for i in ids])
 
 
-def collate_fn(x):
-    formatted = []
-    for e in x:
-        formatted.append(
-            tokenizer.apply_chat_template(
-                get_chat_format(e, model_name), tokenize=False
+def get_collate_fn(difficulty, split):
+    def fn(x):
+        formatted = []
+        for e in x:
+            formatted.append(
+                tokenizer.apply_chat_template(
+                    get_chat_format(e, model_name), tokenize=False
+                )
             )
-        )
-    element = tokenizer(
-        formatted,
-        padding="longest",
-        truncation=True,
-    )["input_ids"]
-    response_template = to_str(get_response_template_ids(tokenizer, model_name))
-    for i,e in enumerate(element):
-        if response_template not in to_str(e):
-            print(formatted[i])
-            raise ValueError("response_template not in element")
+        element = tokenizer(
+            formatted,
+            padding="longest",
+            truncation=True,
+        )["input_ids"]
+        response_template = to_str(get_response_template_ids(tokenizer, model_name))
+        for i, e in enumerate(element):
+            if response_template not in to_str(e):
+                num_incompatible[difficulty][split] += 1
 
-    return element
+        return element
+
+    return fn
 
 
 def validate():
@@ -40,7 +47,9 @@ def validate():
         for split in ["train", "valid", "test"]:
             print(difficulty, split)
             dataloader = torch.utils.data.DataLoader(
-                dataset[split], batch_size=2, collate_fn=collate_fn
+                dataset[split],
+                batch_size=2,
+                collate_fn=get_collate_fn(difficulty, split),
             )
             for _ in tqdm.tqdm(dataloader):
                 pass
@@ -49,6 +58,7 @@ def validate():
                 #     print(f"decoded {decoded}")
                 #     print(f"formatted {formatted}")
                 #     raise ValueError("decoded != formatted")
+    pprint(num_incompatible)
 
 
 validate()
