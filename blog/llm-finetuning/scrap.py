@@ -1,36 +1,49 @@
 import tqdm
-
+import torch
 from chat_format import get_chat_format, get_response_template_ids
 from dataset_utils import load_or_create_dataset
 from finetune import get_model_and_tokenizer
 
-model_name = "TinyLlama/TinyLlama-1.1B-Chat-v0.4"
+model_name = "mistralai/Mistral-7B-Instruct-v0.2"
 model, tokenizer = get_model_and_tokenizer(model_name)
 
 
-def validate():
-    def to_str(ids):
-        return ",".join([str(i) for i in ids])
+def to_str(ids):
+    return ",".join([str(i) for i in ids])
 
+
+def collate_fn(x):
+    formatted = []
+    for e in x:
+        formatted.append(
+            tokenizer.apply_chat_template(
+                get_chat_format(e, model_name), tokenize=False
+            )
+        )
+    element = tokenizer(
+        formatted,
+        padding="longest",
+        truncation=True,
+    )["input_ids"]
+    response_template = to_str(get_response_template_ids(tokenizer, model_name))
+    for i,e in enumerate(element):
+        if response_template not in to_str(e):
+            print(formatted[i])
+            raise ValueError("response_template not in element")
+
+    return element
+
+
+def validate():
     for difficulty in ["easy", "medium", "hard"]:
         dataset = load_or_create_dataset(difficulty)
         for split in ["train", "valid", "test"]:
             print(difficulty, split)
-            for x in tqdm.tqdm(dataset[split]):
-                formatted = tokenizer.apply_chat_template(
-                    get_chat_format(x, model_name), tokenize=False
-                )
-                element = tokenizer(
-                    formatted,
-                    padding="longest",
-                    truncation=True,
-                )["input_ids"]
-                response_template = to_str(
-                    get_response_template_ids(tokenizer, model_name)
-                )
-                if response_template not in to_str(element):
-                    print(formatted)
-                    raise ValueError("response_template not in element")
+            dataloader = torch.utils.data.DataLoader(
+                dataset[split], batch_size=2, collate_fn=collate_fn
+            )
+            for _ in tqdm.tqdm(dataloader):
+                pass
                 # decoded = tokenizer.decode(element)
                 # if decoded != formatted:
                 #     print(f"decoded {decoded}")
