@@ -11,7 +11,8 @@ from finetune import get_model_and_tokenizer, get_tokenize_fn
 model_name = "mistralai/Mistral-7B-Instruct-v0.2"
 model, tokenizer = get_model_and_tokenizer(model_name)
 tokenize_fn = get_tokenize_fn(tokenizer)
-num_incompatible = defaultdict(lambda: defaultdict(int))
+num_missing_response_template = defaultdict(lambda: defaultdict(int))
+num_incomplete = defaultdict(lambda: defaultdict(int))
 
 
 def to_str(ids):
@@ -31,7 +32,10 @@ def get_collate_fn(difficulty, split):
         response_template = to_str(get_response_template_ids(tokenizer, model_name))
         for i, e in enumerate(element):
             if response_template not in to_str(e):
-                num_incompatible[difficulty][split] += 1
+                num_missing_response_template[difficulty][split] += 1
+            decoded = tokenizer.decode(e)
+            if x[i]["response"] not in decoded:
+                num_incomplete[difficulty][split] += 1
 
         return element
 
@@ -50,12 +54,9 @@ def validate():
             )
             for _ in tqdm.tqdm(dataloader):
                 pass
-                # decoded = tokenizer.decode(element)
-                # if decoded != formatted:
-                #     print(f"decoded {decoded}")
-                #     print(f"formatted {formatted}")
-                #     raise ValueError("decoded != formatted")
-    pprint(num_incompatible)
+
+    pprint(num_missing_response_template)
+    pprint(num_incomplete)
 
 
 validate()

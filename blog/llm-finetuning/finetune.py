@@ -6,9 +6,9 @@ import determined as det
 import evaluate
 import transformers
 from determined.transformers import DetCallback
+from peft import LoraConfig, get_peft_model
 from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
 from trl import DataCollatorForCompletionOnlyLM
-from peft import LoraConfig, get_peft_model
 
 from chat_format import get_chat_format, get_response_template_ids, set_special_tokens
 from dataset_utils import load_or_create_dataset
