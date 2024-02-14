@@ -8,6 +8,7 @@ import transformers
 from determined.transformers import DetCallback
 from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
 from trl import DataCollatorForCompletionOnlyLM
+from peft import LoraConfig, get_peft_model
 
 from chat_format import get_chat_format, get_response_template_ids, set_special_tokens
 from dataset_utils import load_or_create_dataset
@@ -95,6 +96,17 @@ def main(training_args, det_callback, hparams):
         accuracy = acc.compute(predictions=preds[~mask], references=labels[~mask])
 
         return {**bleu_score, **accuracy}
+
+
+    peft_config = LoraConfig(
+        task_type="CAUSAL_LM",
+        inference_mode=False,
+        r=8,
+        lora_alpha=32,
+        lora_dropout=0.1,
+    )
+
+    model = get_peft_model(model, peft_config)
 
     # logging.error(f"dataset={dataset['train'][0]}")
 

@@ -1,4 +1,4 @@
-name: Text-to-SQL
+name: lora easy
 debug: false
 workspace: Kevin
 project: LLMBlog1
@@ -6,6 +6,7 @@ environment:
   environment_variables:
     - NCCL_DEBUG=INFO
     - HF_HOME=/nvmefs1/kevin.musgrave/hf_cache
+  image: determinedai/environments-dev:python-3.10-pytorch-2.0-deepspeed-0.10.0-smartsim
 resources:
   slots_per_trial: 2
   resource_pool: A100
@@ -16,7 +17,7 @@ searcher:
   metric: eval_accuracy
   smaller_is_better: false
 hyperparameters:
-  model: "TinyLlama/TinyLlama-1.1B-Chat-v0.4"
+  model: "mistralai/Mistral-7B-Instruct-v0.2"
   dataset_subset: "easy"
   training_args:
     output_dir: "/tmp/llm_finetuning"
