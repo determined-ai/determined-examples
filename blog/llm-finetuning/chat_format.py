@@ -16,22 +16,28 @@ CHAT_ML_EOS_TOKEN = "<|im_end|>"
 
 
 def get_chat_format(element, model_name, with_assistant_response=True):
+    system_prompt = (
+        "You are a helpful programmer assistant that excels at SQL. "
+        "When prompted with a task and a definition of an SQL table, you "
+        "respond with a SQL query to retrieve information from the table. "
+        "Don't explain your reasoning, only provide the SQL query."
+    )
+
     user_prompt = "Task: {instruction}\nSQL table: {input}\nSQL query: "
-    output = [
-        {"role": "user", "content": user_prompt.format_map(element)},
-    ]
+
+    if model_name == "mistralai/Mistral-7B-Instruct-v0.2":
+        user_prompt = f"{system_prompt}\n{user_prompt}"
+        output = [
+            {"role": "user", "content": user_prompt.format_map(element)},
+        ]
+    else:
+        output = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt.format_map(element)},
+        ]
 
     if with_assistant_response:
         output.append({"role": "assistant", "content": element["response"]})
-
-    if model_name != "mistralai/Mistral-7B-Instruct-v0.2":
-        system_prompt = (
-            "You are a helpful programmer assistant that excels at SQL. "
-            "When prompted with a task and a definition of an SQL table, you "
-            "respond with a SQL query to retrieve information from the table. "
-            "Don't explain your reasoning, only provide the SQL query."
-        )
-        output = [{"role": "system", "content": system_prompt}] + output
 
     return output
 

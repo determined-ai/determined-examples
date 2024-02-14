@@ -1,4 +1,4 @@
-name: lora easy
+name: tinyllama easy
 debug: false
 workspace: Kevin
 project: LLMBlog1
@@ -17,7 +17,7 @@ searcher:
   metric: eval_accuracy
   smaller_is_better: false
 hyperparameters:
-  model: "mistralai/Mistral-7B-Instruct-v0.2"
+  model: "TinyLlama/TinyLlama-1.1B-Chat-v0.4"
   dataset_subset: "easy"
   training_args:
     output_dir: "/tmp/llm_finetuning"

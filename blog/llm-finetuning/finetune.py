@@ -24,7 +24,6 @@ def get_model_and_tokenizer(model_name):
         model_name,
         padding_side="left",
         truncation_side="right",
-        add_eos_token=True,
     )
     set_special_tokens(tokenizer, model_name)
 
@@ -97,16 +96,15 @@ def main(training_args, det_callback, hparams):
 
         return {**bleu_score, **accuracy}
 
+    # peft_config = LoraConfig(
+    #     task_type="CAUSAL_LM",
+    #     inference_mode=False,
+    #     r=8,
+    #     lora_alpha=32,
+    #     lora_dropout=0.1,
+    # )
 
-    peft_config = LoraConfig(
-        task_type="CAUSAL_LM",
-        inference_mode=False,
-        r=8,
-        lora_alpha=32,
-        lora_dropout=0.1,
-    )
-
-    model = get_peft_model(model, peft_config)
+    # model = get_peft_model(model, peft_config)
 
     # logging.error(f"dataset={dataset['train'][0]}")
 
