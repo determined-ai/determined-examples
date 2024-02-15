@@ -3,14 +3,15 @@ import glob
 
 from determined.experimental import client
 
-from chat_format import ASSISTANT_PROMPT, EOS_TOKEN, get_chat_format
+from chat_format import get_chat_format, maybe_add_generation_prompt
 from dataset_utils import load_or_create_dataset
 from finetune import get_model_and_tokenizer
 
 
 def main(exp_id, dataset_subset):
+    model_name = "mistralai/Mistral-7B-Instruct-v0.2"
     if exp_id is None:
-        checkpoint_dir = "TinyLlama/TinyLlama-1.1B-Chat-v0.4"
+        checkpoint_dir = model_name
     else:
         exp = client.get_experiment(exp_id)
         checkpoint = exp.list_checkpoints(
@@ -22,19 +23,24 @@ def main(exp_id, dataset_subset):
         checkpoint_dir = glob.glob(f"{checkpoint_dir}/checkpoint-*")[0]
 
     model, tokenizer = get_model_and_tokenizer(checkpoint_dir)
-    eos_token_id = tokenizer.get_vocab()[EOS_TOKEN]
 
     dataset = load_or_create_dataset(dataset_subset)["test"]
     element = dataset[0]
     formatted = tokenizer.apply_chat_template(
-        get_chat_format(element)[:2],
+        get_chat_format(
+            {"instruction": element["instruction"], "input": element["input"]},
+            model_name,
+            with_assistant_response=False,
+        ),
         tokenize=False,
     )
-    formatted += ASSISTANT_PROMPT
+    formatted = maybe_add_generation_prompt(formatted, model_name)
     print(formatted)
 
     inputs = tokenizer(formatted, return_tensors="pt")
-    outputs = model.generate(**inputs, eos_token_id=eos_token_id, max_new_tokens=1000)
+    outputs = model.generate(
+        **inputs, eos_token_id=tokenizer.eos_token_id, max_new_tokens=1000
+    )
     input_length = inputs["input_ids"].shape[1]
     response = tokenizer.batch_decode(
         outputs[:, input_length:], skip_special_tokens=True
