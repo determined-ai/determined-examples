@@ -96,15 +96,16 @@ def main(training_args, det_callback, hparams):
 
         return {**bleu_score, **accuracy}
 
-    # peft_config = LoraConfig(
-    #     task_type="CAUSAL_LM",
-    #     inference_mode=False,
-    #     r=8,
-    #     lora_alpha=32,
-    #     lora_dropout=0.1,
-    # )
+    if hparams["lora"]:
+        peft_config = LoraConfig(
+            task_type="CAUSAL_LM",
+            inference_mode=False,
+            r=8,
+            lora_alpha=32,
+            lora_dropout=0.1,
+        )
 
-    # model = get_peft_model(model, peft_config)
+        model = get_peft_model(model, peft_config)
 
     # logging.error(f"dataset={dataset['train'][0]}")
 
