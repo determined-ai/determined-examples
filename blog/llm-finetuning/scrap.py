@@ -6,7 +6,7 @@ import numpy as np
 import torch
 import tqdm
 
-from chat_format import get_chat_format, get_response_template_ids
+from chat_format import get_assistant_prompt, get_chat_format, get_response_template_ids
 from dataset_utils import load_or_create_dataset
 from finetune import get_tokenize_fn, get_tokenizer
 
@@ -16,6 +16,7 @@ tokenize_fn = get_tokenize_fn(tokenizer)
 num_missing_response_template = defaultdict(lambda: defaultdict(int))
 num_incomplete = defaultdict(lambda: defaultdict(int))
 num_tokens = defaultdict(lambda: defaultdict(list))
+num_tokens_before_response = defaultdict(lambda: defaultdict(list))
 
 
 def to_str(ids):
@@ -42,21 +43,34 @@ def plot_histogram_and_zoom_in(
     plt.savefig(f"{filename_prefix}.png")
     plt.close()
 
+    return bin_edges
+
 
 def get_collate_fn(difficulty, split):
     def fn(x):
         formatted = []
+        before_response_formatted = []
         for e in x:
-            formatted.append(
-                tokenizer.apply_chat_template(
-                    get_chat_format(e, model_name), tokenize=False
-                )
+            with_chat_template = tokenizer.apply_chat_template(
+                get_chat_format(e, model_name), tokenize=False
+            )
+            formatted.append(with_chat_template)
+            before_response_formatted.append(
+                with_chat_template.split(get_assistant_prompt(model_name))[0]
             )
         untruncated = tokenizer(formatted, padding=False, truncation=False)["input_ids"]
+        before_response_untruncated = tokenizer(
+            before_response_formatted,
+            padding=False,
+            truncation=False,
+        )["input_ids"]
         element = tokenize_fn(formatted)["input_ids"]
         response_template = to_str(get_response_template_ids(tokenizer, model_name))
         for i, e in enumerate(element):
             num_tokens[difficulty][split].append(len(untruncated[i]))
+            num_tokens_before_response[difficulty][split].append(
+                len(before_response_untruncated[i])
+            )
             if response_template not in to_str(e):
                 num_missing_response_template[difficulty][split] += 1
             decoded = tokenizer.decode(e)
@@ -81,10 +95,16 @@ def validate():
             for _ in tqdm.tqdm(dataloader):
                 pass
 
-            plot_histogram_and_zoom_in(
+            bin_edges = plot_histogram_and_zoom_in(
                 np.array(num_tokens[difficulty][split]),
                 bins=100,
                 filename_prefix=f"{difficulty}_{split}_tokens",
+            )
+
+            plot_histogram_and_zoom_in(
+                np.array(num_tokens_before_response[difficulty][split]),
+                bins=bin_edges,
+                filename_prefix=f"{difficulty}_{split}_tokens_before_response",
             )
 
     pprint(num_missing_response_template)

@@ -10,7 +10,6 @@ CHAT_ML_TEMPLATE = """
 {% endfor %}
 """
 
-CHAT_ML_ASSISTANT_PROMPT = "<|im_start|>assistant\n"
 
 CHAT_ML_EOS_TOKEN = "<|im_end|>"
 
@@ -50,15 +49,19 @@ def set_special_tokens(tokenizer, model_name):
         tokenizer.pad_token_id = tokenizer.eos_token_id
 
 
-def get_response_template_ids(tokenizer, model_name):
+def get_assistant_prompt(model_name):
     if model_name == "TinyLlama/TinyLlama-1.1B-Chat-v0.4":
-        return tokenizer.encode(CHAT_ML_ASSISTANT_PROMPT, add_special_tokens=False)
+        return "<|im_start|>assistant\n"
     else:
-        return tokenizer.encode("[/INST]", add_special_tokens=False)
+        return "[/INST]"
+
+
+def get_response_template_ids(tokenizer, model_name):
+    return tokenizer.encode(get_assistant_prompt(model_name), add_special_tokens=False)
 
 
 def maybe_add_generation_prompt(x, model_name):
     if model_name == "TinyLlama/TinyLlama-1.1B-Chat-v0.4":
-        return x + CHAT_ML_ASSISTANT_PROMPT
+        return x + get_assistant_prompt(model_name)
     else:
         return x
