@@ -6,7 +6,6 @@ import determined as det
 import evaluate
 import torch
 import transformers
-from determined.transformers import DetCallback
 from peft import LoraConfig, get_peft_model
 from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
 from trl import DataCollatorForCompletionOnlyLM
@@ -14,7 +13,28 @@ from trl import DataCollatorForCompletionOnlyLM
 from chat_format import get_chat_format, get_response_template_ids, set_special_tokens
 from dataset_utils import load_or_create_dataset
 
+from hf_callback import DetCallback
+
 logger = logging.getLogger(__name__)
+
+
+def determined_profiler_from_ctx(
+    ctx,
+    config_determined,
+    info,
+) -> "determined.profiler.ProfilerAgent":
+    begin_on_batch, end_after_batch = config_determined.profiling_interval()
+    return det.profiler.ProfilerAgent(
+        trial_id=ctx.train._trial_id,
+        agent_id=info.agent_id,
+        master_url=info.master_url,
+        profiling_is_enabled=config_determined.profiling_enabled(),
+        global_rank=ctx.distributed.get_rank(),
+        local_rank=ctx.distributed.get_local_rank(),
+        begin_on_batch=begin_on_batch,
+        end_after_batch=end_after_batch,
+        sync_timings=config_determined.profiling_sync_timings(),
+    )
 
 
 def get_tokenizer(model_name):
@@ -61,6 +81,8 @@ def main(training_args, det_callback, hparams):
             get_chat_format(element, model_name), tokenize=False
         )
         outputs = tokenize_fn(formatted)
+        # logging.error(f"type(output_ids_={type(outputs['input_ids'])}")
+        logging.error(f"input_ids={len(outputs['input_ids'])}")
         return {
             "input_ids": outputs["input_ids"],
             "attention_mask": outputs["attention_mask"],
@@ -160,9 +182,12 @@ if __name__ == "__main__":
     else:
         distributed = det.core.DistributedContext.from_torch_distributed()
 
+    # Setup profiler
+    config_determined = det.ExperimentConfig(info.trial._config)
     with det.core.init(distributed=distributed) as core_context:
-        det_callback = DetCallback(
-            core_context,
-            training_args,
-        )
-        main(training_args, det_callback, hparams)
+        with determined_profiler_from_ctx(
+            core_context, config_determined, info
+        ) as profiler:
+            det_callback = DetCallback(core_context, training_args, profiler)
+            main(training_args, det_callback, hparams)
+

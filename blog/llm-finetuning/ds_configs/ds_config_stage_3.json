@@ -7,6 +7,9 @@
     "hysteresis": 2,
     "min_loss_scale": 1
   },
+  "bf16": {
+    "enabled": "auto"
+  },
   "optimizer": {
     "type": "AdamW",
     "params": {
@@ -40,13 +43,5 @@
   "gradient_accumulation_steps": "auto",
   "gradient_clipping": "auto",
   "train_batch_size": "auto",
-  "train_micro_batch_size_per_gpu": "auto",
-  "flops_profiler": {
-    "enabled": true,
-    "profile_step": 1,
-    "module_depth": -1,
-    "top_modules": 1,
-    "detailed": true,
-    "output_file": null
-  }
+  "train_micro_batch_size_per_gpu": "auto"
 }
