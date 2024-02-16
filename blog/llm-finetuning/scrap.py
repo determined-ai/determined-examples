@@ -17,6 +17,7 @@ num_missing_response_template = defaultdict(lambda: defaultdict(int))
 num_incomplete = defaultdict(lambda: defaultdict(int))
 num_tokens = defaultdict(lambda: defaultdict(list))
 num_tokens_before_response = defaultdict(lambda: defaultdict(list))
+num_tokens_with_padding_and_truncation = defaultdict(lambda: defaultdict(list))
 
 
 def to_str(ids):
@@ -71,6 +72,7 @@ def get_collate_fn(difficulty, split):
             num_tokens_before_response[difficulty][split].append(
                 len(before_response_untruncated[i])
             )
+            num_tokens_with_padding_and_truncation[difficulty][split].append(len(e))
             if response_template not in to_str(e):
                 num_missing_response_template[difficulty][split] += 1
             decoded = tokenizer.decode(e)
@@ -83,19 +85,20 @@ def get_collate_fn(difficulty, split):
 
 
 def validate():
+    batch_size = 4
     for difficulty in ["easy", "medium", "hard"]:
         dataset = load_or_create_dataset(difficulty)
         for split in ["train", "valid", "test"]:
             print(difficulty, split)
             dataloader = torch.utils.data.DataLoader(
                 dataset[split],
-                batch_size=1,
+                batch_size=batch_size,
                 collate_fn=get_collate_fn(difficulty, split),
             )
             for _ in tqdm.tqdm(dataloader):
                 pass
 
-            bin_edges = plot_histogram_and_zoom_in(
+            plot_histogram_and_zoom_in(
                 np.array(num_tokens[difficulty][split]),
                 bins=100,
                 filename_prefix=f"{difficulty}_{split}_tokens",
@@ -103,8 +106,14 @@ def validate():
 
             plot_histogram_and_zoom_in(
                 np.array(num_tokens_before_response[difficulty][split]),
-                bins=bin_edges,
+                bins=100,
                 filename_prefix=f"{difficulty}_{split}_tokens_before_response",
+            )
+
+            plot_histogram_and_zoom_in(
+                np.array(num_tokens_with_padding_and_truncation[difficulty][split]),
+                bins=100,
+                filename_prefix=f"{difficulty}_{split}_tokens_with_pad_trunc_{batch_size}",
             )
 
     pprint(num_missing_response_template)
