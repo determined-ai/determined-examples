@@ -1,19 +1,11 @@
-name: mistral deepspeed easy WarmupDecayLR batch size 1 bf16, genai image
+name: mistral deepspeed easy
 debug: false
-workspace: agnieszka
-project: llm-blog2
-profiling:
-  enabled: true
-  begin_on_batch: 100
-  end_after_batch: 1000
 environment:
   environment_variables:
     - NCCL_DEBUG=INFO
-    - HF_HOME=/nvmefs1/agnieszka.ciborowska/hf_cache
   image: determinedai/genai-train:latest
 resources:
   slots_per_trial: 2
-  resource_pool: A100
 searcher:
   name: single
   max_length:
@@ -22,13 +14,12 @@ searcher:
   smaller_is_better: false
 hyperparameters:
   model: "mistralai/Mistral-7B-Instruct-v0.2"
-  #model: "TinyLlama/TinyLlama-1.1B-Chat-v0.4"
   dataset_subset: "easy"
   lora: false
   training_args:
     output_dir: "/tmp/llm_finetuning"
     max_steps: 5000
-    per_device_train_batch_size: 1
+    per_device_train_batch_size: 2
     per_device_eval_batch_size: 4
     bf16: true
     evaluation_strategy: "steps"
@@ -41,5 +32,5 @@ hyperparameters:
     deepspeed: "ds_configs/ds_config_stage_3.json"
 entrypoint: >-
   python -m determined.launch.deepspeed
-  python finetune_with_profiling.py
+  python finetune.py
 max_restarts: 0
