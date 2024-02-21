@@ -12,6 +12,7 @@ This repository contains a variety of Determined examples that are not actively 
 | Example                                 | Description                                                                  |
 |:---------------------------------------:|:----------------------------------------------------------------------------:|
 | [LLM Finetuning](blog/llm-finetuning) | Finetuning the TinyLlama-1.1B Model on Text-to-SQL. |
+| [LLM Finetuning 2](blog/llm-finetuning-2) | Finetuning the Mistral-7B Model on Text-to-SQL using LoRA and DeepSpeed. |
 | [Python SDK demo](blog/python_sdk_demo) | Example usage of the Determined Python SDK to run and administer experiments. |
 
 ## Computer Vision
