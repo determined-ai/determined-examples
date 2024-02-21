@@ -1,46 +1,18 @@
-import logging
-import sys
-
-import datasets
 import determined as det
 import evaluate
-import torch
-import transformers
 from determined.transformers import DetCallback
-from peft import LoraConfig, get_peft_model
 from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
 from trl import DataCollatorForCompletionOnlyLM
 
-from chat_format import get_chat_format, get_response_template_ids, set_special_tokens
+from chat_format import ASSISTANT_PROMPT, CHAT_ML_TEMPLATE, EOS_TOKEN, get_chat_format
 from dataset_utils import load_or_create_dataset
-
-logger = logging.getLogger(__name__)
-
-
-def get_tokenizer(model_name):
-    tokenizer = AutoTokenizer.from_pretrained(
-        model_name,
-        padding_side="right",
-        truncation_side="right",
-    )
-    set_special_tokens(tokenizer, model_name)
-    return tokenizer
 
 
 def get_model_and_tokenizer(model_name):
-    model = AutoModelForCausalLM.from_pretrained(
-        model_name,
-        torch_dtype=torch.bfloat16,
-    )
-    tokenizer = get_tokenizer(model_name)
+    model = AutoModelForCausalLM.from_pretrained(model_name)
+    tokenizer = AutoTokenizer.from_pretrained(model_name, eos_token=EOS_TOKEN)
+    tokenizer.chat_template = CHAT_ML_TEMPLATE
     return model, tokenizer
-
-
-def get_tokenize_fn(tokenizer):
-    def fn(formatted):
-        return tokenizer(formatted, padding=True, truncation=True, max_length=2048)
-
-    return fn
 
 
 def preprocess_logits_for_metrics(logits, labels):
@@ -54,24 +26,22 @@ def preprocess_logits_for_metrics(logits, labels):
 def main(training_args, det_callback, hparams):
     model_name = hparams["model"]
     model, tokenizer = get_model_and_tokenizer(model_name)
-    tokenize_fn = get_tokenize_fn(tokenizer)
 
     def tokenize(element):
         formatted = tokenizer.apply_chat_template(
-            get_chat_format(element, model_name), tokenize=False
+            get_chat_format(element), tokenize=False
         )
-        outputs = tokenize_fn(formatted)
+        outputs = tokenizer(formatted)
         return {
             "input_ids": outputs["input_ids"],
             "attention_mask": outputs["attention_mask"],
         }
 
     dataset = load_or_create_dataset(hparams["dataset_subset"])
-    column_names = list(dataset["train"].features)
     for k in dataset.keys():
-        dataset[k] = dataset[k].map(tokenize, remove_columns=column_names)
+        dataset[k] = dataset[k].map(tokenize)
 
-    response_template_ids = get_response_template_ids(tokenizer, model_name)
+    response_template_ids = tokenizer.encode(ASSISTANT_PROMPT, add_special_tokens=False)
     collator = DataCollatorForCompletionOnlyLM(
         response_template_ids, tokenizer=tokenizer
     )
@@ -92,29 +62,10 @@ def main(training_args, det_callback, hparams):
 
         decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
         decoded_preds = tokenizer.batch_decode(preds, skip_special_tokens=True)
-
-        for l, p in zip(decoded_labels, decoded_preds):
-            if l != p:
-                logging.error(f"decoded_label:{l}")
-                logging.error(f"decoded_pred:{p}")
-
         bleu_score = bleu.compute(predictions=decoded_preds, references=decoded_labels)
         accuracy = acc.compute(predictions=preds[~mask], references=labels[~mask])
 
         return {**bleu_score, **accuracy}
-
-    if hparams["lora"]:
-        peft_config = LoraConfig(
-            task_type="CAUSAL_LM",
-            inference_mode=False,
-            r=8,
-            lora_alpha=32,
-            lora_dropout=0.1,
-        )
-
-        model = get_peft_model(model, peft_config)
-
-    logging.error(f"dataset={dataset['train'][0]}")
 
     trainer = Trainer(
         args=training_args,
@@ -128,41 +79,15 @@ def main(training_args, det_callback, hparams):
     )
 
     trainer.add_callback(det_callback)
-    # we need to comment this one out, since it will lead to the following error:
-    # [parameter_offload.py:86:_apply_to_tensors_only] A module has unknown inputs or outputs type (<class 'transformers.cache_utils.DynamicCache'>)
-    # and the tensors embedded in it cannot be detected. The ZeRO-3 hooks designed to trigger before or after backward pass of the module relies on
-    # knowing the input and output tensors and therefore may not get triggered properly.
-    # The error happens due to deepspeed initialization happening in the trainer.train(), hence call on eval fails.
-
-    # trainer.evaluate()
-
+    trainer.evaluate()
     trainer.train()
 
 
 if __name__ == "__main__":
-    # Setup logging
-    logging.basicConfig(
-        format=det.LOG_FORMAT, handlers=[logging.StreamHandler(sys.stdout)]
-    )
-    log_level = logging.INFO
-    transformers.utils.logging.set_verbosity_info()
-    logger.setLevel(log_level)
-    datasets.utils.logging.set_verbosity(log_level)
-    transformers.utils.logging.set_verbosity(log_level)
-    transformers.utils.logging.enable_default_handler()
-    transformers.utils.logging.enable_explicit_format()
-
     info = det.get_cluster_info()
     hparams = info.trial.hparams
-    training_args = TrainingArguments(**hparams["training_args"])
-    if training_args.deepspeed:
-        distributed = det.core.DistributedContext.from_deepspeed()
-    else:
-        distributed = det.core.DistributedContext.from_torch_distributed()
-
+    distributed = det.core.DistributedContext.from_torch_distributed()
     with det.core.init(distributed=distributed) as core_context:
-        det_callback = DetCallback(
-            core_context,
-            training_args,
-        )
+        training_args = TrainingArguments(**hparams["training_args"])
+        det_callback = DetCallback(core_context, training_args)
         main(training_args, det_callback, hparams)

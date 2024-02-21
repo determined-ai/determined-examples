@@ -1,7 +1,8 @@
 import datasets
+import pandas as pd
 
 
-def add_length_column(dataset):
+def add_length_column(dataset) -> pd.DataFrame:
     df = dataset.to_pandas()
     df["total_length"] = 0
     for column_name in ["instruction", "input", "response"]:
@@ -20,7 +21,7 @@ def filter_by_total_length(df, difficulty, number_of_samples):
         return df[df["total_length"].between(201, 800)].iloc[:number_of_samples]
 
 
-def get_dataset_subset_name(difficulty):
+def get_dataset_subset_name(difficulty: str) -> str:
     return f"text-to-sql-v1-{difficulty}"
 
 

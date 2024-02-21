@@ -1,8 +1,9 @@
-name: Text-to-SQL
+name: mistral lora easy
 debug: false
 environment:
   environment_variables:
     - NCCL_DEBUG=INFO
+  image: determinedai/environments-dev:python-3.10-pytorch-2.0-deepspeed-0.10.0-smartsim
 resources:
   slots_per_trial: 2
 searcher:
@@ -12,14 +13,15 @@ searcher:
   metric: eval_accuracy
   smaller_is_better: false
 hyperparameters:
-  model: "TinyLlama/TinyLlama-1.1B-Chat-v0.4"
+  model: "mistralai/Mistral-7B-Instruct-v0.2"
   dataset_subset: "easy"
+  lora: true
   training_args:
     output_dir: "/tmp/llm_finetuning"
     max_steps: 5000
-    per_device_train_batch_size: 1
+    per_device_train_batch_size: 8
     per_device_eval_batch_size: 4
-    fp16: true
+    bf16: true
     evaluation_strategy: "steps"
     eval_steps: 1000
     logging_strategy: "steps"
