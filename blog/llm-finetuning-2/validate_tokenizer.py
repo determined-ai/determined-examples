@@ -24,12 +24,12 @@ def to_str(ids):
     return ",".join([str(i) for i in ids])
 
 
-def plot_histogram_and_zoom_in(
+def plot_histogram(
     data,
     bins,
+    title,
     filename_prefix,
 ):
-    # Step 1: Plot the original histogram
     hist_data, bin_edges = np.histogram(data, bins=bins)
     plt.figure()
     plt.bar(
@@ -40,7 +40,7 @@ def plot_histogram_and_zoom_in(
     )
     plt.xlabel("Bin")
     plt.ylabel("Frequency")
-    plt.title(f"{filename_prefix} Token Histogram")
+    plt.title(title)
     plt.savefig(f"{filename_prefix}.png")
     plt.close()
 
@@ -98,21 +98,24 @@ def validate():
             for _ in tqdm.tqdm(dataloader):
                 pass
 
-            plot_histogram_and_zoom_in(
+            plot_histogram(
                 np.array(num_tokens[difficulty][split]),
                 bins=100,
+                title=f"{difficulty} {split} # Tokens",
                 filename_prefix=f"{difficulty}_{split}_tokens",
             )
 
-            plot_histogram_and_zoom_in(
+            plot_histogram(
                 np.array(num_tokens_before_response[difficulty][split]),
                 bins=100,
+                title=f"{difficulty} {split} # Tokens Before Response",
                 filename_prefix=f"{difficulty}_{split}_tokens_before_response",
             )
 
-            plot_histogram_and_zoom_in(
+            plot_histogram(
                 np.array(num_tokens_with_padding_and_truncation[difficulty][split]),
                 bins=100,
+                title=f"{difficulty} {split} # Tokens with Padding & Truncation",
                 filename_prefix=f"{difficulty}_{split}_tokens_with_pad_trunc_{batch_size}",
             )
 
