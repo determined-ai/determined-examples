@@ -9,7 +9,7 @@ pip install determined
 
 Finetune with LoRA:
 ```bash
-det e create distributed.yaml . 
+det e create lora.yaml . 
 ```
 
 Finetune with DeepSpeed:
@@ -19,7 +19,7 @@ det e create deepspeed.yaml .
 
 ## Configuration
 
-Change configuration options in `distributed.yaml`. Some important options are:
+Change configuration options in `lora.yaml`. Some important options are:
 - `slots_per_trial`: the number of GPUs to use.
 - `dataset_subset`: the difficulty subset to train on.
 - `per_device_train_batch_size`: the batch size per GPU.
