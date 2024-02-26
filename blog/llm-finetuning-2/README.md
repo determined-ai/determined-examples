@@ -42,6 +42,8 @@ Where
 - `<exp_id>` is the id of your finetuning experiment in the Determined UI.
 - `<dataset_subset>` is one of "easy", "medium", or "hard".
 
+If you're testing a LoRA model, then add `--lora` to the above command.
+
 To test the pretrained model (not finetuned), leave out `--exp_id`. For example:
 
 ```bash
