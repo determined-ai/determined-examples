@@ -7,7 +7,7 @@ import evaluate
 import torch
 import transformers
 from determined.transformers import DetCallback
-from peft import LoraConfig, get_peft_model
+from peft import AutoPeftModelForCausalLM, LoraConfig, get_peft_model
 from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
 from trl import DataCollatorForCompletionOnlyLM
 
@@ -27,11 +27,29 @@ def get_tokenizer(model_name):
     return tokenizer
 
 
-def get_model_and_tokenizer(model_name):
-    model = AutoModelForCausalLM.from_pretrained(
-        model_name,
-        torch_dtype=torch.bfloat16,
-    )
+def get_model_and_tokenizer(model_name, use_lora, inference=False):
+    if inference and use_lora:
+        model = AutoPeftModelForCausalLM.from_pretrained(
+            model_name, torch_dtype=torch.bfloat16
+        )
+
+    else:
+        model = AutoModelForCausalLM.from_pretrained(
+            model_name,
+            torch_dtype=torch.bfloat16,
+        )
+
+        if use_lora:
+            peft_config = LoraConfig(
+                task_type="CAUSAL_LM",
+                inference_mode=False,
+                r=8,
+                lora_alpha=32,
+                lora_dropout=0.1,
+            )
+
+            model = get_peft_model(model, peft_config)
+
     tokenizer = get_tokenizer(model_name)
     return model, tokenizer
 
@@ -53,7 +71,7 @@ def preprocess_logits_for_metrics(logits, labels):
 
 def main(training_args, det_callback, hparams):
     model_name = hparams["model"]
-    model, tokenizer = get_model_and_tokenizer(model_name)
+    model, tokenizer = get_model_and_tokenizer(model_name, hparams["lora"])
     tokenize_fn = get_tokenize_fn(tokenizer)
 
     def tokenize(element):
@@ -93,23 +111,10 @@ def main(training_args, det_callback, hparams):
         decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
         decoded_preds = tokenizer.batch_decode(preds, skip_special_tokens=True)
 
-
         bleu_score = bleu.compute(predictions=decoded_preds, references=decoded_labels)
         accuracy = acc.compute(predictions=preds[~mask], references=labels[~mask])
 
         return {**bleu_score, **accuracy}
-
-    if hparams["lora"]:
-        peft_config = LoraConfig(
-            task_type="CAUSAL_LM",
-            inference_mode=False,
-            r=8,
-            lora_alpha=32,
-            lora_dropout=0.1,
-        )
-
-        model = get_peft_model(model, peft_config)
-
 
     trainer = Trainer(
         args=training_args,

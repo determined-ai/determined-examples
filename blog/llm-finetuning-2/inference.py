@@ -8,7 +8,7 @@ from dataset_utils import load_or_create_dataset
 from finetune import get_model_and_tokenizer
 
 
-def main(exp_id, dataset_subset):
+def main(exp_id, dataset_subset, lora):
     model_name = "mistralai/Mistral-7B-Instruct-v0.2"
     if exp_id is None:
         checkpoint_dir = model_name
@@ -22,7 +22,7 @@ def main(exp_id, dataset_subset):
         checkpoint_dir = checkpoint.download(mode=client.DownloadMode.MASTER)
         checkpoint_dir = glob.glob(f"{checkpoint_dir}/checkpoint-*")[0]
 
-    model, tokenizer = get_model_and_tokenizer(checkpoint_dir)
+    model, tokenizer = get_model_and_tokenizer(checkpoint_dir, lora, inference=True)
 
     dataset = load_or_create_dataset(dataset_subset)["test"]
     element = dataset[0]
@@ -53,5 +53,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--exp_id", type=int, default=None, required=False)
     parser.add_argument("--dataset_subset", type=str, default="easy", required=False)
+    parser.add_argument("--lora", action="store_true")
     args = parser.parse_args()
-    main(args.exp_id, args.dataset_subset)
+    main(args.exp_id, args.dataset_subset, args.lora)
