@@ -32,7 +32,7 @@ DeepSpeed configuration files are in the `ds_configs` folder.
 Test your model's generation capabilities:
 
 ```bash
-python test_model.py --exp_id <exp_id> --dataset_subset <dataset_subset>
+python inference.py --exp_id <exp_id> --dataset_subset <dataset_subset>
 ```
 
 Where 
@@ -42,7 +42,7 @@ Where
 To test the pretrained model (not finetuned), leave out `--exp_id`. For example:
 
 ```bash
-python test_model.py --dataset_subset easy
+python inference.py --dataset_subset easy
 ```
 
 ## Validating the tokenizer

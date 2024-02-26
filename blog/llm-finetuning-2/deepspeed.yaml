@@ -3,6 +3,7 @@ debug: false
 environment:
   environment_variables:
     - NCCL_DEBUG=INFO
+  image: determinedai/environments:cuda-11.8-pytorch-2.0-gpu-mpi-0.27.1
 resources:
   slots_per_trial: 2
 searcher:
