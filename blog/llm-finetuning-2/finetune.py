@@ -93,10 +93,6 @@ def main(training_args, det_callback, hparams):
         decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
         decoded_preds = tokenizer.batch_decode(preds, skip_special_tokens=True)
 
-        for l, p in zip(decoded_labels, decoded_preds):
-            if l != p:
-                logging.error(f"decoded_label:{l}")
-                logging.error(f"decoded_pred:{p}")
 
         bleu_score = bleu.compute(predictions=decoded_preds, references=decoded_labels)
         accuracy = acc.compute(predictions=preds[~mask], references=labels[~mask])
@@ -114,7 +110,6 @@ def main(training_args, det_callback, hparams):
 
         model = get_peft_model(model, peft_config)
 
-    logging.error(f"dataset={dataset['train'][0]}")
 
     trainer = Trainer(
         args=training_args,
@@ -128,13 +123,6 @@ def main(training_args, det_callback, hparams):
     )
 
     trainer.add_callback(det_callback)
-    # we need to comment this one out, since it will lead to the following error:
-    # [parameter_offload.py:86:_apply_to_tensors_only] A module has unknown inputs or outputs type (<class 'transformers.cache_utils.DynamicCache'>)
-    # and the tensors embedded in it cannot be detected. The ZeRO-3 hooks designed to trigger before or after backward pass of the module relies on
-    # knowing the input and output tensors and therefore may not get triggered properly.
-    # The error happens due to deepspeed initialization happening in the trainer.train(), hence call on eval fails.
-
-    # trainer.evaluate()
 
     trainer.train()
 

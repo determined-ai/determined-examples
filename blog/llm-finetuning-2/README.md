@@ -1,6 +1,6 @@
 # Finetuning Mistral-7B using LoRA and DeepSpeed
 
-In this demo, we finetune the [Mistral-7B](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2) using [LoRA](https://arxiv.org/abs/2106.09685) and [DeepSpeed](https://github.com/microsoft/DeepSpeed). We ran LoRA on two 80 GB A100 GPUs, and DeepSpeed on two, four, and eight 80 GB A100 GPUs.
+In this demo, we finetune [Mistral-7B](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2) using [LoRA](https://arxiv.org/abs/2106.09685) and [DeepSpeed](https://github.com/microsoft/DeepSpeed). We ran LoRA on two 80 GB A100 GPUs, and DeepSpeed on two, four, and eight 80 GB A100 GPUs.
 
 To get started, first install Determined on your local machine:
 ```bash
@@ -25,7 +25,7 @@ Change configuration options in `distributed.yaml`. Some important options are:
 - `per_device_train_batch_size`: the batch size per GPU.
 
 
-DeepSpeed configuration options are in the `ds_configs` folder.
+DeepSpeed configuration files are in the `ds_configs` folder.
 
 ## Testing
 
