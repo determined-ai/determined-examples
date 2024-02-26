@@ -17,6 +17,9 @@ Finetune with DeepSpeed:
 det e create deepspeed.yaml . 
 ```
 
+The actual training code is in `finetune.py`.
+
+
 ## Configuration
 
 Change configuration options in `lora.yaml`. Some important options are:
