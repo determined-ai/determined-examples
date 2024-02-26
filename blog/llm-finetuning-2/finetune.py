@@ -27,12 +27,18 @@ def get_tokenizer(model_name):
     return tokenizer
 
 
-def get_model_and_tokenizer(model_name, use_lora, inference=False):
-    if inference and use_lora:
-        model = AutoPeftModelForCausalLM.from_pretrained(
-            model_name, torch_dtype=torch.bfloat16
-        )
-
+def get_model_and_tokenizer(model_name, use_lora, inference=False, device_map="auto"):
+    if inference:
+        if use_lora:
+            model = AutoPeftModelForCausalLM.from_pretrained(
+                model_name, torch_dtype=torch.bfloat16, device_map=device_map
+            )
+        else:
+            model = AutoModelForCausalLM.from_pretrained(
+                model_name,
+                torch_dtype=torch.bfloat16,
+                device_map=device_map,
+            )
     else:
         model = AutoModelForCausalLM.from_pretrained(
             model_name,

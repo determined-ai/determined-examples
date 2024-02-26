@@ -44,6 +44,8 @@ Where
 
 If you're testing a LoRA model, then add `--lora` to the above command.
 
+To use CPU instead of GPU, add `--device cpu`.
+
 To test the pretrained model (not finetuned), leave out `--exp_id`. For example:
 
 ```bash

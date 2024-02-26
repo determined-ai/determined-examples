@@ -8,7 +8,7 @@ from dataset_utils import load_or_create_dataset
 from finetune import get_model_and_tokenizer
 
 
-def main(exp_id, dataset_subset, lora):
+def main(exp_id, dataset_subset, lora, device):
     model_name = "mistralai/Mistral-7B-Instruct-v0.2"
     if exp_id is None:
         checkpoint_dir = model_name
@@ -22,7 +22,9 @@ def main(exp_id, dataset_subset, lora):
         checkpoint_dir = checkpoint.download(mode=client.DownloadMode.MASTER)
         checkpoint_dir = glob.glob(f"{checkpoint_dir}/checkpoint-*")[0]
 
-    model, tokenizer = get_model_and_tokenizer(checkpoint_dir, lora, inference=True)
+    model, tokenizer = get_model_and_tokenizer(
+        checkpoint_dir, lora, inference=True, device_map=device
+    )
 
     dataset = load_or_create_dataset(dataset_subset)["test"]
     element = dataset[0]
@@ -37,7 +39,7 @@ def main(exp_id, dataset_subset, lora):
     formatted = maybe_add_generation_prompt(formatted, model_name)
     print(formatted)
 
-    inputs = tokenizer(formatted, return_tensors="pt")
+    inputs = tokenizer(formatted, return_tensors="pt").to(device)
     outputs = model.generate(
         **inputs, eos_token_id=tokenizer.eos_token_id, max_new_tokens=1000
     )
@@ -54,5 +56,6 @@ if __name__ == "__main__":
     parser.add_argument("--exp_id", type=int, default=None, required=False)
     parser.add_argument("--dataset_subset", type=str, default="easy", required=False)
     parser.add_argument("--lora", action="store_true")
+    parser.add_argument("--device", type=str, default="cuda")
     args = parser.parse_args()
-    main(args.exp_id, args.dataset_subset, args.lora)
+    main(args.exp_id, args.dataset_subset, args.lora, args.device)
