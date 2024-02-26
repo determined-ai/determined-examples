@@ -3,7 +3,6 @@ debug: false
 environment:
   environment_variables:
     - NCCL_DEBUG=INFO
-  image: determinedai/environments-dev:python-3.10-pytorch-2.0-deepspeed-0.10.0-smartsim
 resources:
   slots_per_trial: 2
 searcher:

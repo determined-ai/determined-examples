@@ -3,7 +3,6 @@ debug: false
 environment:
   environment_variables:
     - NCCL_DEBUG=INFO
-  image: determinedai/genai-train:latest
 resources:
   slots_per_trial: 2
 searcher:
