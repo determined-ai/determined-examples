@@ -7,22 +7,22 @@ To get started, first install Determined on your local machine:
 pip install determined
 ```
 
-Finetune with LoRA:
+Then finetune with LoRA:
 ```bash
 det e create lora.yaml . 
 ```
 
-Finetune with DeepSpeed:
+Or finetune with DeepSpeed:
 ```bash
 det e create deepspeed.yaml . 
 ```
 
-The actual training code is in `finetune.py`.
+You can view the actual training code in `finetune.py`.
 
 
 ## Configuration
 
-Change configuration options in `lora.yaml`. Some important options are:
+Change configuration options in `lora.yaml` or `deepspeed.yaml`. Some important options are:
 - `slots_per_trial`: the number of GPUs to use.
 - `dataset_subset`: the difficulty subset to train on.
 - `per_device_train_batch_size`: the batch size per GPU.
