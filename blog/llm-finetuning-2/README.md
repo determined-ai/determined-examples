@@ -20,12 +20,16 @@ det e create deepspeed.yaml .
 You can view the actual training code in `finetune.py`.
 
 
+
+
 ## Configuration
 
 Change configuration options in `lora.yaml` or `deepspeed.yaml`. Some important options are:
 - `slots_per_trial`: the number of GPUs to use.
 - `dataset_subset`: the difficulty subset to train on.
 - `per_device_train_batch_size`: the batch size per GPU.
+
+The results in [our blog post](https://www.determined.ai/blog/llm-finetuning-2) were obtained using `per_device_train_batch_size: 1` and `per_device_eval_batch_size: 4`
 
 
 DeepSpeed configuration files are in the `ds_configs` folder.
