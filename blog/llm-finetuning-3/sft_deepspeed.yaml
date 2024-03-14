@@ -1,4 +1,4 @@
-name: gemma-2b sft test
+name: gemma-2b sft
 debug: false
 workspace: agnieszka
 project: llm-blog3
@@ -23,12 +23,12 @@ hyperparameters:
   model: "google/gemma-2b"
   dataset: "HuggingFaceTB/cosmopedia"
   dataset_subsets:
-#    - subset: web_samples_v2
-#      number_of_samples: 10000
+    - subset: web_samples_v2
+      number_of_samples: 10000
     - subset: stanford
       number_of_samples: 5000
-#    - subset: stories
-#      number_of_samples: 10000
+    - subset: stories
+      number_of_samples: 10000
     - subset: wikihow
       number_of_samples: 5000
     - subset: openstax
@@ -38,6 +38,14 @@ hyperparameters:
     - subset: auto_math_text
       number_of_samples: 7500
   lora: false
+  data_collator:
+    on_completions_only: false
+    response_template: "<|im_start|>assistant\n"
+  chat_tokens:
+    add_chat_tokens: false
+    special_tokens:
+      - "<|im_start|>"
+      - "<|im_end|>"
   training_args:
     output_dir: "/tmp/llm_finetuning"
     max_steps: 5000

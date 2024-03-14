@@ -2,10 +2,10 @@ import argparse
 import glob
 
 from determined.experimental import client
+from finetune import get_model_and_tokenizer
 
 from chat_format import get_chat_format, maybe_add_generation_prompt
 from dataset_utils import load_or_create_dataset
-from finetune import get_model_and_tokenizer
 
 
 def main(exp_id, dataset_subset, lora, device):
