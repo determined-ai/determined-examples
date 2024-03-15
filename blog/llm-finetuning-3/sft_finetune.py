@@ -9,8 +9,13 @@ import transformers
 from datasets import concatenate_datasets, load_dataset
 from determined.transformers import DetCallback
 from peft import AutoPeftModelForCausalLM, LoraConfig, get_peft_model
-from transformers import (AutoModelForCausalLM, AutoTokenizer, PreTrainedModel,
-                          PreTrainedTokenizer, TrainingArguments)
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    PreTrainedModel,
+    PreTrainedTokenizer,
+    TrainingArguments,
+)
 from trl import DataCollatorForCompletionOnlyLM, SFTTrainer, setup_chat_format
 
 from chat_format import CHAT_ML_TEMPLATE, get_response_template_ids
@@ -111,7 +116,9 @@ def main(training_args, det_callback, hparams):
     model, tokenizer = get_model_and_tokenizer(model_name, hparams["lora"])
 
     if hparams["chat_tokens"]["add_chat_tokens"]:
-        model, tokenizer = setup_special_tokens(model, tokenizer, hparams["chat_tokens"]["special_tokens"])
+        model, tokenizer = setup_special_tokens(
+            model, tokenizer, hparams["chat_tokens"]["special_tokens"]
+        )
 
     def formatting_prompts_func(example):
         output_texts = []
@@ -169,12 +176,8 @@ if __name__ == "__main__":
     info = det.get_cluster_info()
     hparams = info.trial.hparams
     training_args = TrainingArguments(**hparams["training_args"])
-    if training_args.deepspeed:
-        distributed = det.core.DistributedContext.from_deepspeed()
-    else:
-        distributed = det.core.DistributedContext.from_torch_distributed()
 
-    with det.core.init(distributed=distributed) as core_context:
+    with det.core.init() as core_context:
         det_callback = DetCallback(
             core_context,
             training_args,

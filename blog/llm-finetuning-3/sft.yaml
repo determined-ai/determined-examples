@@ -1,4 +1,4 @@
-name: gemma-2b sft
+name: gemma-2b sft on_completions + special_tokens
 debug: false
 workspace: agnieszka
 project: llm-blog3
@@ -11,7 +11,7 @@ environment:
     - HF_MODULES_CACHE=/nvmefs1/agnieszka.ciborowska
   image: determinedai/environments:cuda-11.8-pytorch-2.0-gpu-95c7a14
 resources:
-  slots_per_trial: 8
+  slots_per_trial: 1
   resource_pool: A100
 searcher:
   name: single
@@ -39,16 +39,16 @@ hyperparameters:
       number_of_samples: 7500
   lora: false
   data_collator:
-    on_completions_only: false
+    on_completions_only: true
     response_template: "<|im_start|>assistant\n"
   chat_tokens:
-    add_chat_tokens: false
+    add_chat_tokens: true
     special_tokens:
       - "<|im_start|>"
       - "<|im_end|>"
   training_args:
     output_dir: "/tmp/llm_finetuning"
-    max_steps: 5000
+    num_train_epochs: 1
     per_device_train_batch_size: 2
     per_device_eval_batch_size: 4
     bf16: true
@@ -59,9 +59,7 @@ hyperparameters:
     save_strategy: "steps"
     save_steps: 5000
     learning_rate: 1e-5
-    deepspeed: "ds_configs/ds_config_stage_3.json"
 entrypoint: >-
-  python -m determined.launch.deepspeed
   python sft_finetune.py
 max_restarts: 0
 bind_mounts:

@@ -1,0 +1,50 @@
+name: gemma-2b dpo test
+debug: false
+workspace: agnieszka
+project: llm-blog3
+environment:
+  environment_variables:
+    - NCCL_DEBUG=INFO
+    - TRANSFORMERS_CACHE=/nvmefs1/agnieszka.ciborowska
+    - HF_DATASETS_CACHE=/nvmefs1/agnieszka.ciborowska
+    - HF_HOME=/nvmefs1/agnieszka.ciborowska
+    - HF_MODULES_CACHE=/nvmefs1/agnieszka.ciborowska
+  image: determinedai/environments:cuda-11.8-pytorch-2.0-gpu-95c7a14
+resources:
+  slots_per_trial: 1
+  resource_pool: A100
+searcher:
+  name: single
+  max_length:
+    batches: 5000
+  metric: eval_accuracy
+  smaller_is_better: false
+hyperparameters:
+  model_name: "google/gemma-2b"
+  datasets:
+    - "argilla/dpo-mix-7k"
+    - "jondurbin/truthy-dpo-v0.1"
+  dpo_beta: 0.1
+  dpo_loss: "sigmoid"
+  lora: false
+  training_args:
+    output_dir: "/tmp/llm_finetuning"
+    num_train_epochs: 1
+    per_device_train_batch_size: 1
+    per_device_eval_batch_size: 2
+    bf16: true
+    evaluation_strategy: "steps"
+    eval_steps: 1000
+    logging_strategy: "steps"
+    logging_steps: 100
+    save_strategy: "steps"
+    save_steps: 5000
+    learning_rate: 1e-5
+entrypoint: >-
+  python dpo_finetune.py
+max_restarts: 0
+bind_mounts:
+  - container_path: /nvmefs1/agnieszka.ciborowska
+    host_path: /nvmefs1/agnieszka.ciborowska
+    propagation: rprivate
+    read_only: false
