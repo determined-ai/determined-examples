@@ -1,4 +1,4 @@
-name: gemma-2b sft on_completions + special_tokens
+name: gemma-2b sft deepspeed 2xA100, stage 2, 4096, batch_size=1, acc=8
 debug: false
 workspace: agnieszka
 project: llm-blog3
@@ -11,7 +11,7 @@ environment:
     - HF_MODULES_CACHE=/nvmefs1/agnieszka.ciborowska
   image: determinedai/environments:cuda-11.8-pytorch-2.0-gpu-95c7a14
 resources:
-  slots_per_trial: 1
+  slots_per_trial: 2
   resource_pool: A100
 searcher:
   name: single
@@ -38,6 +38,7 @@ hyperparameters:
     - subset: auto_math_text
       number_of_samples: 7500
   lora: false
+  max_seq_length: 4096
   data_collator:
     on_completions_only: true
     response_template: "<|im_start|>assistant\n"
@@ -48,18 +49,22 @@ hyperparameters:
       - "<|im_end|>"
   training_args:
     output_dir: "/tmp/llm_finetuning"
-    num_train_epochs: 1
-    per_device_train_batch_size: 2
+    #num_train_epochs: 1
+    max_steps: 100
+    per_device_train_batch_size: 1
     per_device_eval_batch_size: 4
     bf16: true
     evaluation_strategy: "steps"
-    eval_steps: 1000
+    eval_steps: 80
     logging_strategy: "steps"
-    logging_steps: 100
+    logging_steps: 10
     save_strategy: "steps"
-    save_steps: 5000
+    save_steps: 100
     learning_rate: 1e-5
+    gradient_accumulation_steps: 8
+    deepspeed: "ds_configs/ds_config_stage_2.json"
 entrypoint: >-
+  python -m determined.launch.deepspeed
   python sft_finetune.py
 max_restarts: 0
 bind_mounts:

@@ -1,92 +1,34 @@
 import logging
 import sys
-from typing import List
+from typing import Any, Dict, List
 
 import datasets
 import determined as det
-import torch
 import transformers
-from datasets import concatenate_datasets, load_dataset
+from datasets import DatasetDict, concatenate_datasets, load_dataset
 from determined.transformers import DetCallback
-from peft import AutoPeftModelForCausalLM, LoraConfig, get_peft_model
-from transformers import (
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    PreTrainedModel,
-    PreTrainedTokenizer,
-    TrainingArguments,
-)
-from trl import DataCollatorForCompletionOnlyLM, SFTTrainer, setup_chat_format
+from transformers import (PreTrainedModel, PreTrainedTokenizer,
+                          TrainingArguments)
+from trl import DataCollatorForCompletionOnlyLM, SFTTrainer
 
-from chat_format import CHAT_ML_TEMPLATE, get_response_template_ids
+from utils import get_model, get_tokenizer
 
 logger = logging.getLogger(__name__)
 
 
-def get_tokenizer(model_name):
-    tokenizer = AutoTokenizer.from_pretrained(
-        model_name,
-    )
-    if tokenizer.pad_token_id is None:
-        tokenizer.pad_token_id = tokenizer.eos_token_id
-
-    if tokenizer.model_max_length > 100_000:
-        tokenizer.model_max_length = 2048
-
-    if tokenizer.chat_template is None and tokenizer.default_chat_template is None:
-        tokenizer.chat_template = CHAT_ML_TEMPLATE
-
-    tokenizer.add_eos_token = True
-    return tokenizer
-
-
-def get_model_and_tokenizer(model_name, use_lora, inference=False, device_map="auto"):
-    if inference:
-        if use_lora:
-            model = AutoPeftModelForCausalLM.from_pretrained(
-                model_name, torch_dtype=torch.bfloat16, device_map=device_map
-            )
-        else:
-            model = AutoModelForCausalLM.from_pretrained(
-                model_name,
-                torch_dtype=torch.bfloat16,
-                device_map=device_map,
-            )
-    else:
-        model = AutoModelForCausalLM.from_pretrained(
-            model_name,
-            torch_dtype=torch.bfloat16,
-        )
-
-        if use_lora:
-            peft_config = LoraConfig(
-                task_type="CAUSAL_LM",
-                inference_mode=False,
-                r=8,
-                lora_alpha=32,
-                lora_dropout=0.1,
-            )
-
-            model = get_peft_model(model, peft_config)
-
-    tokenizer = get_tokenizer(model_name)
-    return model, tokenizer
-
-
-def load_sft_dataset(hparams):
+def load_sft_dataset(hparams: Dict[str, Any]) -> DatasetDict:
     dataset_name = hparams["dataset"]
     dataset_subsets = hparams["dataset_subsets"]
     dataset_list = []
     for subset_info in dataset_subsets:
-        dataset_subset = load_dataset(dataset_name, subset_info["subset"])["train"]
         if "ratio" in subset_info:
-            number_of_samples = int(len(dataset_subset) * subset_info["ratio"])
+            subset_str = f"{subset_info['ratio']*100}%"
         elif "number_of_samples" in subset_info:
-            number_of_samples = subset_info["number_of_samples"]
+            subset_str = str(subset_info["number_of_samples"])
         else:
             raise RuntimeError(f"Unknown subset definition {subset_info}")
-        dataset_subset = dataset_subset.shuffle(seed=1234).select(
-            list(range(number_of_samples))
+        dataset_subset = load_dataset(
+            dataset_name, subset_info["subset"], split=f"train[:{subset_str}]"
         )
         dataset_list.append(dataset_subset)
 
@@ -113,7 +55,10 @@ def main(training_args, det_callback, hparams):
     dataset = load_sft_dataset(hparams)
 
     model_name = hparams["model"]
-    model, tokenizer = get_model_and_tokenizer(model_name, hparams["lora"])
+    model = get_model(model_name)
+    tokenizer = get_tokenizer(
+        model_name, truncation_side="right", model_max_length=hparams["max_seq_length"], add_eos_token=True
+    )
 
     if hparams["chat_tokens"]["add_chat_tokens"]:
         model, tokenizer = setup_special_tokens(
@@ -152,7 +97,7 @@ def main(training_args, det_callback, hparams):
         train_dataset=dataset["train"],
         eval_dataset=dataset["test"],
         formatting_func=formatting_prompts_func,
-        max_seq_length=8192,
+        max_seq_length=hparams["max_seq_length"],
     )
 
     trainer.add_callback(det_callback)
@@ -175,11 +120,14 @@ if __name__ == "__main__":
 
     info = det.get_cluster_info()
     hparams = info.trial.hparams
+
     training_args = TrainingArguments(**hparams["training_args"])
 
-    with det.core.init() as core_context:
+    distributed = det.core.DistributedContext.from_deepspeed()
+    with det.core.init(distributed=distributed) as core_context:
         det_callback = DetCallback(
             core_context,
             training_args,
         )
         main(training_args, det_callback, hparams)
+

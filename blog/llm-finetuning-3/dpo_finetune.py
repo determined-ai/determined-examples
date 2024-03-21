@@ -1,82 +1,22 @@
 import logging
-import os
+import random
 import sys
 from typing import Any, Dict, List
 
 import datasets
 import determined as det
-import torch
 import transformers
 from datasets import Dataset, DatasetDict, concatenate_datasets, load_dataset
 from determined.transformers import DetCallback
-from peft import AutoPeftModelForCausalLM, LoraConfig, get_peft_model
-from transformers import (
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    PreTrainedModel,
-    PreTrainedTokenizer,
-    TrainingArguments,
-)
-from transformers.trainer_utils import get_last_checkpoint
+from transformers import PreTrainedTokenizer, TrainingArguments
 from trl import DPOTrainer
 
-from chat_format import CHAT_ML_TEMPLATE, get_response_template_ids
+from utils import get_model, get_tokenizer, download_ckpt
 
 logger = logging.getLogger(__name__)
 
 TRIPLET_DATASET = "prompt,chosen,rejected"
 CONVERSATION_DATASET = "chosen,rejected"
-
-
-def get_tokenizer(model_name_or_path):
-    tokenizer = AutoTokenizer.from_pretrained(
-        model_name_or_path,
-        # Following DPO alignment handbook
-        truncation_side="left",
-    )
-    if tokenizer.pad_token_id is None:
-        tokenizer.pad_token_id = tokenizer.eos_token_id
-
-    if tokenizer.model_max_length > 100_000:
-        tokenizer.model_max_length = 8192
-
-    if tokenizer.chat_template is None and tokenizer.default_chat_template is None:
-        tokenizer.chat_template = CHAT_ML_TEMPLATE
-
-    tokenizer.add_eos_token = False
-    return tokenizer
-
-
-def get_model(model_name_or_path, use_lora, inference=False, device_map="auto"):
-    if inference:
-        if use_lora:
-            model = AutoPeftModelForCausalLM.from_pretrained(
-                model_name_or_path, torch_dtype=torch.bfloat16, device_map=device_map
-            )
-        else:
-            model = AutoModelForCausalLM.from_pretrained(
-                model_name_or_path,
-                torch_dtype=torch.bfloat16,
-                device_map=device_map,
-            )
-    else:
-        model = AutoModelForCausalLM.from_pretrained(
-            model_name_or_path,
-            torch_dtype=torch.bfloat16,
-        )
-
-        if use_lora:
-            peft_config = LoraConfig(
-                task_type="CAUSAL_LM",
-                inference_mode=False,
-                r=8,
-                lora_alpha=32,
-                lora_dropout=0.1,
-            )
-
-            model = get_peft_model(model, peft_config)
-
-    return model
 
 
 def is_feature_chat_conversation_format(dataset: Dataset, feature: str) -> bool:
@@ -187,70 +127,60 @@ def load_dpo_datasets(
     return dataset
 
 
-def download_ckpt(ckpt_uuid: str, core_context: det.core.Context) -> str:
-    download_dir = os.path.join(os.environ.get("HF_CACHE", "."), ckpt_uuid)
-
-    if not os.path.exists(os.path.join(download_dir, ckpt_uuid)):
-        os.makedirs(download_dir)
-
-        def selector(path: str) -> bool:
-            if any(
-                [
-                    path.endswith(ext)
-                    for ext in [
-                        "config.json",
-                        "generation-config.json",
-                        ".safetensors",
-                        "special_tokens_map.json",
-                        "tokenizer_config.json",
-                        "tokenizer.json",
-                        "tokenizer.model",
-                    ]
-                ]
-            ):
-                return True
-
-            return False
-
-        core_context.checkpoint.download(ckpt_uuid, download_dir, selector=selector)
-
-    model_dir = get_last_checkpoint(download_dir)
-    return model_dir
-
-
 def main(
     core_context: det.core.Context,
     training_args: TrainingArguments,
     det_callback: DetCallback,
     hparams: Dict[str, Any],
 ) -> None:
-
     model_ckpt = hparams.get("model_ckpt", None)
     if model_ckpt:
         model_name_or_path = download_ckpt(model_ckpt, core_context)
     else:
         model_name_or_path = hparams["model_name"]
 
-    model = get_model(model_name_or_path, hparams["lora"])
-    model_ref = get_model(model_name_or_path, hparams["lora"])
-    tokenizer = get_tokenizer(model_name_or_path)
+    model = get_model(model_name_or_path)
+    if not hparams["precompute_ref_log_probs"]:
+        model_ref = get_model(model_name_or_path)
+        model_ref.eval()
+    else:
+        model_ref = None
 
+    tokenizer = get_tokenizer(
+        model_name_or_path,
+        truncation_side="left",
+        model_max_length=hparams["max_length"],
+        add_eos_token=False,
+    )
     dataset = load_dpo_datasets(hparams["datasets"], tokenizer)
+
+    if core_context.distributed.rank == 0:
+        for index in random.sample(range(len(dataset["train"])), 3):
+            logger.info(
+                f"Prompt sample {index} of the raw training set:\n\n{dataset['train'][index]['prompt']}"
+            )
+            logger.info(
+                f"Chosen sample {index} of the raw training set:\n\n{dataset['train'][index]['chosen']}"
+            )
+            logger.info(
+                f"Rejected sample {index} of the raw training set:\n\n{dataset['train'][index]['rejected']}"
+            )
 
     trainer = DPOTrainer(
         model,
-        ref_model=model_ref,
+        model_ref,
         args=training_args,
         beta=hparams["dpo_beta"],
         train_dataset=dataset["train"],
         eval_dataset=dataset["test"],
         loss_type=hparams["dpo_loss"],
         tokenizer=tokenizer,
-        max_length=8192,
+        precompute_ref_log_probs=hparams["precompute_ref_log_probs"],
+        max_length=hparams["max_length"],
+        max_prompt_length=hparams["max_prompt_length"],
+        max_target_length=hparams["max_target_length"],
     )
-
     trainer.add_callback(det_callback)
-
     trainer.train()
 
 
@@ -271,9 +201,11 @@ if __name__ == "__main__":
     hparams = info.trial.hparams
     training_args = TrainingArguments(**hparams["training_args"])
 
-    with det.core.init() as core_context:
+    distributed = det.core.DistributedContext.from_deepspeed()
+    with det.core.init(distributed=distributed) as core_context:
         det_callback = DetCallback(
             core_context,
             training_args,
         )
         main(core_context, training_args, det_callback, hparams)
+
