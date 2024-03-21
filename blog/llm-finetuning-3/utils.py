@@ -1,5 +1,6 @@
-from typing import Optional
 import os
+from typing import Optional
+
 import determined as det
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedModel
@@ -67,16 +68,6 @@ def download_ckpt(ckpt_uuid: str, core_context: det.core.Context) -> str:
 
         return False
 
-    # ['trainer_state.json', 'global_step5000', 'config.json', 'rng_state_1.pth', 'training_args.bin', 'latest',
-    #  'rng_state_5.pth', 'rng_state_4.pth', 'model-00002-of-00002.safetensors', 'tokenizer_config.json',
-    #  'rng_state_2.pth', 'rng_state_3.pth', 'model-00001-of-00002.safetensors', 'model.safetensors.index.json',
-    #  'special_tokens_map.json', 'zero_to_fp32.py', 'rng_state_6.pth', 'rng_state_7.pth', 'tokenizer.json',
-    #  'generation_config.json', 'rng_state_0.pth']
-
     core_context.checkpoint.download(ckpt_uuid, download_dir, selector=selector)
-
-    import logging
     model_dir = get_last_checkpoint(download_dir)
-
-    logging.error(os.listdir(model_dir))
     return model_dir

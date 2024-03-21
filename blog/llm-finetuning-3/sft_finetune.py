@@ -7,8 +7,7 @@ import determined as det
 import transformers
 from datasets import DatasetDict, concatenate_datasets, load_dataset
 from determined.transformers import DetCallback
-from transformers import (PreTrainedModel, PreTrainedTokenizer,
-                          TrainingArguments)
+from transformers import PreTrainedModel, PreTrainedTokenizer, TrainingArguments
 from trl import DataCollatorForCompletionOnlyLM, SFTTrainer
 
 from utils import get_model, get_tokenizer
@@ -57,7 +56,10 @@ def main(training_args, det_callback, hparams):
     model_name = hparams["model"]
     model = get_model(model_name)
     tokenizer = get_tokenizer(
-        model_name, truncation_side="right", model_max_length=hparams["max_seq_length"], add_eos_token=True
+        model_name,
+        truncation_side="right",
+        model_max_length=hparams["max_seq_length"],
+        add_eos_token=True,
     )
 
     if hparams["chat_tokens"]["add_chat_tokens"]:
@@ -130,4 +132,3 @@ if __name__ == "__main__":
             training_args,
         )
         main(training_args, det_callback, hparams)
-

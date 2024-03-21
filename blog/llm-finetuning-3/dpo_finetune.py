@@ -11,7 +11,7 @@ from determined.transformers import DetCallback
 from transformers import PreTrainedTokenizer, TrainingArguments
 from trl import DPOTrainer
 
-from utils import get_model, get_tokenizer, download_ckpt
+from utils import download_ckpt, get_model, get_tokenizer
 
 logger = logging.getLogger(__name__)
 
@@ -208,4 +208,3 @@ if __name__ == "__main__":
             training_args,
         )
         main(core_context, training_args, det_callback, hparams)
-
