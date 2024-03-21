@@ -1,4 +1,4 @@
-name: gemma-2b dpo deepspeed 2xA100, stage 2, 4096, grad_ckpt, batch_size=1, acc=8
+name: gemma-2b dpo, completions+special_tokens sft
 debug: false
 workspace: agnieszka
 project: llm-blog3
@@ -13,38 +13,52 @@ environment:
 resources:
   slots_per_trial: 2
   resource_pool: A100
+  max_slots: 8
 searcher:
-  name: single
+  name: grid
   max_length:
     batches: 5000
   metric: eval_accuracy
   smaller_is_better: false
 hyperparameters:
-  model_name: "google/gemma-2b"
+  #model_name: "google/gemma-2b"
+  # model_ckpt: "29a191f1-f65b-48a7-a288-624b8b8203de" basic sft
+  # model_ckpt: "f6352b17-787c-4375-bebe-8e0e64e3a656" completions sft
+  # model_ckpt: "55d2f23a-2182-4cad-b8de-731727a20324"
   datasets:
     - "argilla/dpo-mix-7k"
     - "jondurbin/truthy-dpo-v0.1"
-  dpo_beta: 0.1
+  dpo_beta:
+    type: categorical
+    vals:
+      - 0.001
+      - 0.01
+      - 0.1
   dpo_loss: "sigmoid"
   max_length: 4096
   max_prompt_length: 2048
   max_target_length: 2048
   precompute_ref_log_probs: true
-  lora: false
   training_args:
     output_dir: "/tmp/llm_finetuning"
-    max_steps: 100
+    num_train_epochs: 2
+    #max_steps: 100
     per_device_train_batch_size: 1
     per_device_eval_batch_size: 1
     bf16: true
     bf16_full_eval: true
     evaluation_strategy: "steps"
-    eval_steps: 80
+    eval_steps: 100
     logging_strategy: "steps"
     logging_steps: 10
-    save_strategy: "steps"
-    save_steps: 5000
-    learning_rate: 5e-7
+    save_strategy: "epoch"
+    save_steps: 1
+    learning_rate:
+      type: categorical
+      vals:
+        - 1e-5
+        - 1e-6
+        - 1e-7
     gradient_accumulation_steps: 8
     gradient_checkpointing: true
     deepspeed: "ds_configs/ds_config_stage_2.json"

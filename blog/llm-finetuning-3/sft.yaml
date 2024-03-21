@@ -1,4 +1,4 @@
-name: gemma-2b sft deepspeed 2xA100, stage 2, 4096, batch_size=1, acc=8
+name: gemma-2b sft completions_only deepspeed 2xA100, stage 2, 4096, batch_size=1, acc=8
 debug: false
 workspace: agnieszka
 project: llm-blog3
@@ -37,25 +37,23 @@ hyperparameters:
       number_of_samples: 7500
     - subset: auto_math_text
       number_of_samples: 7500
-  lora: false
   max_seq_length: 4096
   data_collator:
     on_completions_only: true
     response_template: "<|im_start|>assistant\n"
   chat_tokens:
-    add_chat_tokens: true
+    add_chat_tokens: false
     special_tokens:
       - "<|im_start|>"
       - "<|im_end|>"
   training_args:
     output_dir: "/tmp/llm_finetuning"
-    #num_train_epochs: 1
-    max_steps: 100
+    num_train_epochs: 1
     per_device_train_batch_size: 1
     per_device_eval_batch_size: 4
     bf16: true
     evaluation_strategy: "steps"
-    eval_steps: 80
+    eval_steps: 100
     logging_strategy: "steps"
     logging_steps: 10
     save_strategy: "steps"

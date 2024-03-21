@@ -22,7 +22,7 @@ def get_lm(
         f"use_accelerate={hparams['model_args']['use_accelerate']}",
     ]
 
-    if hparams["model_args"]["hf_model_name"]:
+    if "hf_model_name" in hparams["model_args"]:
         model_args.append(f"pretrained={hparams['model_args']['hf_model_name']}")
 
     if "token" in hparams["model_args"]:

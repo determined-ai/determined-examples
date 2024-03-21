@@ -1,4 +1,4 @@
-name: lm eval on sft ckpt
+name: lm eval on gemma-2b
 debug: false
 workspace: agnieszka
 project: llm-blog3
@@ -13,6 +13,7 @@ environment:
 resources:
   slots_per_trial: 1
   resource_pool: A100
+  max_slots: 1
 searcher:
   name: grid
   max_length:
@@ -21,8 +22,10 @@ searcher:
   smaller_is_better: false
 hyperparameters:
   model_args:
-    #hf_model_name: "google/gemma-2b"
-    model_ckpt: "29a191f1-f65b-48a7-a288-624b8b8203de"
+    hf_model_name: "google/gemma-2b"
+    # model_ckpt: "29a191f1-f65b-48a7-a288-624b8b8203de" basic sft
+    # model_ckpt: "f6352b17-787c-4375-bebe-8e0e64e3a656" completions sft
+    # model_ckpt: "55d2f23a-2182-4cad-b8de-731727a20324"
     trust_remote_code: true
     use_accelerate: false
   batch_size: 4
@@ -31,8 +34,16 @@ hyperparameters:
     type: categorical
     vals:
       - name: arc_challenge
+        num_fewshot: 25
+      - name: truthfulqa_mc
+        num_fewshot: 0
+      - name: hellaswag
+        num_fewshot: 10
+      - name: hendrycks*
         num_fewshot: 5
-      - name: arc_easy,
+      - name: winogrande
+        num_fewshot: 5
+      - name: gsm8k
         num_fewshot: 5
   device: "cuda"
 entrypoint: >-
