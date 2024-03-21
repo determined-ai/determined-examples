@@ -1,0 +1,45 @@
+name: lm eval on sft ckpt
+debug: false
+workspace: agnieszka
+project: llm-blog3
+environment:
+  environment_variables:
+    - NCCL_DEBUG=INFO
+    - TRANSFORMERS_CACHE=/nvmefs1/agnieszka.ciborowska
+    - HF_DATASETS_CACHE=/nvmefs1/agnieszka.ciborowska
+    - HF_HOME=/nvmefs1/agnieszka.ciborowska
+    - HF_MODULES_CACHE=/nvmefs1/agnieszka.ciborowska
+  image: determinedai/environments:cuda-11.8-pytorch-2.0-gpu-95c7a14
+resources:
+  slots_per_trial: 1
+  resource_pool: A100
+searcher:
+  name: grid
+  max_length:
+    batches: 5000
+  metric: eval_accuracy
+  smaller_is_better: false
+hyperparameters:
+  model_args:
+    #hf_model_name: "google/gemma-2b"
+    model_ckpt: "29a191f1-f65b-48a7-a288-624b8b8203de"
+    trust_remote_code: true
+    use_accelerate: false
+  batch_size: 4
+  max_batch_size: 4
+  task:
+    type: categorical
+    vals:
+      - name: arc_challenge
+        num_fewshot: 5
+      - name: arc_easy,
+        num_fewshot: 5
+  device: "cuda"
+entrypoint: >-
+  python run_lm_eval_harness.py
+max_restarts: 0
+bind_mounts:
+  - container_path: /nvmefs1/agnieszka.ciborowska
+    host_path: /nvmefs1/agnieszka.ciborowska
+    propagation: rprivate
+    read_only: false
