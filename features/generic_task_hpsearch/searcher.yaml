@@ -1,0 +1,3 @@
+entrypoint: ["python", "searcher.py"]
+resources:
+  slots: 0
