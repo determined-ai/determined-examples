@@ -1,67 +1,67 @@
-# Finetuning Mistral-7B using LoRA and DeepSpeed
+# From pretrained Gemma-2b to 
 
-In this demo, we finetune [Mistral-7B](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2) using [LoRA](https://arxiv.org/abs/2106.09685) and [DeepSpeed](https://github.com/microsoft/DeepSpeed). We ran LoRA on two 80 GB A100 GPUs, and DeepSpeed on two, four, and eight 80 GB A100 GPUs.
+In this demo, we train the [Gemma-2B](https://huggingface.co/google/gemma-2b) model to both understand 
+instructions and produce outputs that align with human preferences. 
+We start with supervised fine-tuning (SFT) it with an instruction dataset so that the model gets better at answering user queries. 
+Next, we use Direct Preference Optimization (DPO) and a dataset of human preferences
+to make the model output align better with human preferences.
 
 To get started, first install Determined on your local machine:
 ```bash
 pip install determined
 ```
 
-Then finetune with LoRA:
+To perform SFT step:
 ```bash
-det e create lora.yaml . 
+det e create sft.yaml . 
+```
+To perform DPO step:
+
+```bash
+det e create dpo.yaml . 
 ```
 
-Or finetune with DeepSpeed:
-```bash
-det e create deepspeed.yaml . 
-```
-
-You can view the actual training code in `finetune.py`.
-
-
-
+You can view the actual training code in `sft_finetune.py` and `dpo_finetune.py`.
 
 ## Configuration
 
-Change configuration options in `lora.yaml` or `deepspeed.yaml`. Some important options are:
+Change configuration options in `sft.yaml` or `dpo.yaml`. Some important options are:
 - `slots_per_trial`: the number of GPUs to use.
-- `dataset_subset`: the difficulty subset to train on.
 - `per_device_train_batch_size`: the batch size per GPU.
+- `training_args`: training parameters such as learning rate or the number of training epochs.
 
-The results in [our blog post](https://www.determined.ai/blog/llm-finetuning-2) were obtained using `per_device_train_batch_size: 1` and `per_device_eval_batch_size: 4`
+For SFT step, you can also set:
+- `dataset_subsets`: update ratios of datasets.
+- `data_collator`: turns on/off training on completions only.
+- `chat_tokens`: adds special chat tokens to the vocabularyn.
+- `max_seq_length`: sets maximum sequence length.
 
-
-DeepSpeed configuration files are in the `ds_configs` folder.
+For DPO step, you have the following options:
+- `dpo_beta`: sets beta value for DPO training.
+- `dpo_loss`: one of the available dpo losses to use: "sigmoid", "hinge", "cdpo", "ipo", "kto_pair". 
+You can learn more about it [here](https://huggingface.co/docs/trl/main/en/dpo_trainer#loss-functions).
+- `max_length`, `max_prompt_length`, and `max_target_length`: sets maximum sequence length for 
+combined prompt and target, prompt, target, respectively.
 
 ## Testing
 
-Test your model's generation capabilities:
-
+Test your model's generation capabilities, you can use the inference script that generates outputs for
+a number of samples from [Intel/orca_dpo_pairs](https://huggingface.co/datasets/Intel/orca_dpo_pairs) dataset:
 ```bash
-python inference.py --exp_id <exp_id> --dataset_subset <dataset_subset>
+python inference.py [--exp_id <exp_id>] [--trial_id <trial_id>] [--output_file <filename>] [--number_of_samples n]
 ```
 
 Where 
-- `<exp_id>` is the id of your finetuning experiment in the Determined UI.
-- `<dataset_subset>` is one of "easy", "medium", or "hard".
-
-If you're testing a LoRA model, then add `--lora` to the above command.
-
+- `<exp_id>` is the id of your finetuning experiment in the Determined UI. Use either `--exp_id` or `--trial_id`.
+- `<trial_id>` is the id of your finetuning trial in the Determined UI. Use either `--exp_id` or `--trial_id`.
+- `<filename>` is the csv file with model generations.
+- `<n>` is the number of samples from the dataset you want to use for generation. 
 To use CPU instead of GPU, add `--device cpu`.
 
-To test the pretrained model (not finetuned), leave out `--exp_id`. For example:
+To test the pretrained model (not finetuned), leave out `--exp_id` and `--trial_id`. For example:
 
 ```bash
-python inference.py --dataset_subset easy
-```
-
-## Validating the tokenizer
-
-Plot the distribution of dataset sample lengths, and see how many samples will be truncated by the tokenizer:
-
-```bash
-python validate_tokenizer.py
+python inference.py
 ```
 
 
