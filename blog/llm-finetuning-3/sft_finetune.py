@@ -7,7 +7,12 @@ import determined as det
 import transformers
 from datasets import DatasetDict, concatenate_datasets, load_dataset
 from determined.transformers import DetCallback
-from transformers import PreTrainedModel, PreTrainedTokenizer, TrainingArguments
+from transformers import (
+    PreTrainedModel,
+    PreTrainedTokenizer,
+    TrainingArguments,
+    set_seed,
+)
 from trl import DataCollatorForCompletionOnlyLM, SFTTrainer
 
 from utils import get_model, get_tokenizer
@@ -21,7 +26,7 @@ def load_sft_dataset(hparams: Dict[str, Any]) -> DatasetDict:
     dataset_list = []
     for subset_info in dataset_subsets:
         if "ratio" in subset_info:
-            subset_str = f"{subset_info['ratio']*100}%"
+            subset_str = f"{int(subset_info['ratio']*100)}%"
         elif "number_of_samples" in subset_info:
             subset_str = str(subset_info["number_of_samples"])
         else:
@@ -51,12 +56,14 @@ def setup_special_tokens(
 
 
 def main(training_args, det_callback, hparams):
+    set_seed(training_args.seed)
     dataset = load_sft_dataset(hparams)
 
     model_name = hparams["model"]
     model = get_model(model_name)
     tokenizer = get_tokenizer(
         model_name,
+        padding_side="right",
         truncation_side="right",
         model_max_length=hparams["max_seq_length"],
         add_eos_token=True,
@@ -91,6 +98,8 @@ def main(training_args, det_callback, hparams):
         collator = None
         logging.info("Using default data collator")
 
+    logging.info(f"dataset_sample={dataset['train'][0]}")
+
     trainer = SFTTrainer(
         args=training_args,
         model=model,
@@ -110,7 +119,9 @@ def main(training_args, det_callback, hparams):
 if __name__ == "__main__":
     # Setup logging
     logging.basicConfig(
-        format=det.LOG_FORMAT, handlers=[logging.StreamHandler(sys.stdout)]
+        format=det.LOG_FORMAT,
+        handlers=[logging.StreamHandler(sys.stdout)],
+        level=logging.INFO,
     )
     log_level = logging.INFO
     transformers.utils.logging.set_verbosity_info()

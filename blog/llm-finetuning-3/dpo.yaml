@@ -1,7 +1,7 @@
-name: gemma-2b dpo, completions+special_tokens sft
+name: gemma-2b dpo + sft tokens (9987)
 debug: false
 workspace: agnieszka
-project: llm-blog3
+project: llm-blog3-test
 environment:
   environment_variables:
     - NCCL_DEBUG=INFO
@@ -9,7 +9,7 @@ environment:
     - HF_DATASETS_CACHE=/nvmefs1/agnieszka.ciborowska
     - HF_HOME=/nvmefs1/agnieszka.ciborowska
     - HF_MODULES_CACHE=/nvmefs1/agnieszka.ciborowska
-  image: determinedai/environments:cuda-11.8-pytorch-2.0-gpu-95c7a14
+  image: determinedai/genai-train:latest
 resources:
   slots_per_trial: 2
   resource_pool: A100
@@ -21,19 +21,20 @@ searcher:
   metric: eval_accuracy
   smaller_is_better: false
 hyperparameters:
-  #model_name: "google/gemma-2b"
-  # model_ckpt: "29a191f1-f65b-48a7-a288-624b8b8203de" basic sft
-  # model_ckpt: "f6352b17-787c-4375-bebe-8e0e64e3a656" completions sft
-  # model_ckpt: "55d2f23a-2182-4cad-b8de-731727a20324"
+  # model_name: "google/gemma-2b-it"
+  # model_ckpt: "6b6fbaa7-faa9-4449-867b-2939a147a335" # sft special tokens + completions
+  #model_ckpt: "dcb7e618-4e8f-402e-8013-f5cab1ff9eb7" # sft basic (9989)
+  model_ckpt: "eb1a1782-d1d8-40f7-90e6-2a09827aa6b9" # sft tokens (9987)
+  # model_ckpt: "0ac7dcf3-7e53-4432-8303-26d2af67c664" # sft completions (9988)
   datasets:
     - "argilla/dpo-mix-7k"
     - "jondurbin/truthy-dpo-v0.1"
   dpo_beta:
     type: categorical
     vals:
-      - 0.001
-      - 0.01
       - 0.1
+      - 0.05
+      - 0.01
   dpo_loss: "sigmoid"
   max_length: 4096
   max_prompt_length: 2048
@@ -56,12 +57,15 @@ hyperparameters:
     learning_rate:
       type: categorical
       vals:
-        - 1e-5
-        - 1e-6
         - 1e-7
+        - 5e-7
+        - 5e-8
     gradient_accumulation_steps: 8
     gradient_checkpointing: true
     deepspeed: "ds_configs/ds_config_stage_2.json"
+    warmup_ratio: 0.1
+    lr_scheduler_type: "cosine"
+    optim: "adamw_torch"
 entrypoint: >-
   python -m determined.launch.deepspeed
   python dpo_finetune.py

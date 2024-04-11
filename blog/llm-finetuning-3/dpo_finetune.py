@@ -1,5 +1,4 @@
 import logging
-import random
 import sys
 from typing import Any, Dict, List
 
@@ -8,7 +7,7 @@ import determined as det
 import transformers
 from datasets import Dataset, DatasetDict, concatenate_datasets, load_dataset
 from determined.transformers import DetCallback
-from transformers import PreTrainedTokenizer, TrainingArguments
+from transformers import PreTrainedTokenizer, TrainingArguments, set_seed
 from trl import DPOTrainer
 
 from utils import download_ckpt, get_model, get_tokenizer
@@ -123,7 +122,7 @@ def load_dpo_datasets(
             dataset_list_validated.append(ds)
 
     dataset = concatenate_datasets(dataset_list_validated)
-    dataset = dataset.train_test_split(test_size=0.2)
+    dataset = dataset.train_test_split(test_size=0.2, shuffle=False)
     return dataset
 
 
@@ -133,6 +132,9 @@ def main(
     det_callback: DetCallback,
     hparams: Dict[str, Any],
 ) -> None:
+    logger.info(f"Training/evaluation parameters {training_args}")
+    set_seed(training_args.seed)
+
     model_ckpt = hparams.get("model_ckpt", None)
     if model_ckpt:
         model_name_or_path = download_ckpt(model_ckpt, core_context)
@@ -149,13 +151,15 @@ def main(
     tokenizer = get_tokenizer(
         model_name_or_path,
         truncation_side="left",
+        padding_side="left",
         model_max_length=hparams["max_length"],
         add_eos_token=False,
     )
+
     dataset = load_dpo_datasets(hparams["datasets"], tokenizer)
 
     if core_context.distributed.rank == 0:
-        for index in random.sample(range(len(dataset["train"])), 3):
+        for index in [0, 1, 2]:
             logger.info(
                 f"Prompt sample {index} of the raw training set:\n\n{dataset['train'][index]['prompt']}"
             )
@@ -187,7 +191,9 @@ def main(
 if __name__ == "__main__":
     # Setup logging
     logging.basicConfig(
-        format=det.LOG_FORMAT, handlers=[logging.StreamHandler(sys.stdout)]
+        format=det.LOG_FORMAT,
+        handlers=[logging.StreamHandler(sys.stdout)],
+        level=logging.INFO,
     )
     log_level = logging.INFO
     transformers.utils.logging.set_verbosity_info()

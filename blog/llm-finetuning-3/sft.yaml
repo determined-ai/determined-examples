@@ -1,7 +1,7 @@
-name: gemma-2b sft completions_only deepspeed 2xA100, stage 2, 4096, batch_size=1, acc=8
+name: gemma-2b sft basic, 4096, batch_size=1, acc=8, disabled_cache, bigger dataset
 debug: false
 workspace: agnieszka
-project: llm-blog3
+project: llm-blog3-test
 environment:
   environment_variables:
     - NCCL_DEBUG=INFO
@@ -9,7 +9,7 @@ environment:
     - HF_DATASETS_CACHE=/nvmefs1/agnieszka.ciborowska
     - HF_HOME=/nvmefs1/agnieszka.ciborowska
     - HF_MODULES_CACHE=/nvmefs1/agnieszka.ciborowska
-  image: determinedai/environments:cuda-11.8-pytorch-2.0-gpu-95c7a14
+  image: determinedai/genai-train:latest
 resources:
   slots_per_trial: 2
   resource_pool: A100
@@ -24,7 +24,7 @@ hyperparameters:
   dataset: "HuggingFaceTB/cosmopedia"
   dataset_subsets:
     - subset: web_samples_v2
-      number_of_samples: 10000
+      number_of_samples: 15000
     - subset: stanford
       number_of_samples: 5000
     - subset: stories
@@ -32,14 +32,14 @@ hyperparameters:
     - subset: wikihow
       number_of_samples: 5000
     - subset: openstax
-      number_of_samples: 5000
+      number_of_samples: 7500
     - subset: khanacademy
       number_of_samples: 7500
     - subset: auto_math_text
-      number_of_samples: 7500
+      number_of_samples: 10000
   max_seq_length: 4096
   data_collator:
-    on_completions_only: true
+    on_completions_only: false
     response_template: "<|im_start|>assistant\n"
   chat_tokens:
     add_chat_tokens: false
@@ -53,14 +53,16 @@ hyperparameters:
     per_device_eval_batch_size: 4
     bf16: true
     evaluation_strategy: "steps"
-    eval_steps: 100
+    eval_steps: 250
     logging_strategy: "steps"
     logging_steps: 10
-    save_strategy: "steps"
-    save_steps: 100
+    save_strategy: "epoch"
+    save_steps: 1
     learning_rate: 1e-5
     gradient_accumulation_steps: 8
     deepspeed: "ds_configs/ds_config_stage_2.json"
+    warmup_ratio: 0.1
+    seed: 43
 entrypoint: >-
   python -m determined.launch.deepspeed
   python sft_finetune.py

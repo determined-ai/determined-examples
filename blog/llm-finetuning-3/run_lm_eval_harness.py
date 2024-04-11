@@ -112,7 +112,7 @@ def _aggregate_metrics(results, hparams: Dict[str, Any]) -> Dict[str, Any]:
     all_metrics: Dict[str, Dict[str, Union[List[float], float]]] = defaultdict(dict)  # type: ignore
     # If more than one result was reported, then a glob pattern was used and we report the average
     # across all matching tasks.
-    glob_pattern: Optional[str] = hparams["task"] if len(results["results"]) > 1 else None  # type: ignore
+    glob_pattern: Optional[str] = hparams["task"]["name"] if len(results["results"]) > 1 else None  # type: ignore
     avg_glob_key: Optional[str] = glob_pattern + "_average" if glob_pattern is not None else None  # type: ignore
 
     for task_name, metrics in results["results"].items():

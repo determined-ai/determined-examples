@@ -1,7 +1,7 @@
-name: lm eval on gemma-2b
+name: lm eval on dpo on 60537 (9988)
 debug: false
 workspace: agnieszka
-project: llm-blog3
+project: llm-blog3-test
 environment:
   environment_variables:
     - NCCL_DEBUG=INFO
@@ -9,11 +9,11 @@ environment:
     - HF_DATASETS_CACHE=/nvmefs1/agnieszka.ciborowska
     - HF_HOME=/nvmefs1/agnieszka.ciborowska
     - HF_MODULES_CACHE=/nvmefs1/agnieszka.ciborowska
-  image: determinedai/environments:cuda-11.8-pytorch-2.0-gpu-95c7a14
+  image: determinedai/genai-train:latest
 resources:
   slots_per_trial: 1
   resource_pool: A100
-  max_slots: 1
+  max_slots: 4
 searcher:
   name: grid
   max_length:
@@ -22,10 +22,21 @@ searcher:
   smaller_is_better: false
 hyperparameters:
   model_args:
-    hf_model_name: "google/gemma-2b"
-    # model_ckpt: "29a191f1-f65b-48a7-a288-624b8b8203de" basic sft
-    # model_ckpt: "f6352b17-787c-4375-bebe-8e0e64e3a656" completions sft
-    # model_ckpt: "55d2f23a-2182-4cad-b8de-731727a20324"
+    # hf_model_name: "google/gemma-2b-it"
+    # model_ckpt: "dcb7e618-4e8f-402e-8013-f5cab1ff9eb7" # 9989: sft basic
+    # model_ckpt: "0ac7dcf3-7e53-4432-8303-26d2af67c664" # 9988: sft completions
+    # model_ckpt: "eb1a1782-d1d8-40f7-90e6-2a09827aa6b9" # 9987: sft special tokens
+    # model_ckpt: "6b6fbaa7-faa9-4449-867b-2939a147a335"  # 9986: sft special tokens + completions
+    # model_ckpt: "3081c7ed-59c1-46ea-976c-2f6126027dbc" # 59055: dpo on 9986
+    # model_ckpt: "28218dcb-32d3-432b-8d13-74f8fc2e90bb" # 60038: dpo on 9989
+    # model_ckpt: "b5755eeb-f66b-46c5-951d-4f5044a6d740" # 60032: dpo on 9989
+    # model_ckpt: "9b68419f-8b4a-4fec-994b-dbb50c62e746" # 60031: dpo on 9989
+    # model_ckpt: "1678c1b4-47e4-4403-8139-e57dbb77a8ab" # 59053: dpo on 9986
+    # model_ckpt: "092ca394-d81c-4b78-a9e9-43da0135d662" # 60542: dpo on 9987
+    # model_ckpt: "c70e3bbb-432f-46f5-a149-dce891580aa0" # 60545: dpo on 9987
+    # model_ckpt: "b2f2cadf-58c2-4552-9678-3fa78e3004ab" # 60533: dpo on 9988
+    # model_ckpt: "e4bc46cd-76c2-470f-a88f-1e5e467deaa7" # 60531: dpo on 9988
+    # model_ckpt: "2f937e10-b0db-41de-8d7c-3228d91148ab" # 60537: dpo on 9988
     trust_remote_code: true
     use_accelerate: false
   batch_size: 4
