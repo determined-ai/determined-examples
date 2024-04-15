@@ -1,14 +1,8 @@
-name: gemma-2b sft basic, 4096, batch_size=1, acc=8, disabled_cache, bigger dataset
+name: gemma-2b sft
 debug: false
-workspace: agnieszka
-project: llm-blog3-test
 environment:
   environment_variables:
     - NCCL_DEBUG=INFO
-    - TRANSFORMERS_CACHE=/nvmefs1/agnieszka.ciborowska
-    - HF_DATASETS_CACHE=/nvmefs1/agnieszka.ciborowska
-    - HF_HOME=/nvmefs1/agnieszka.ciborowska
-    - HF_MODULES_CACHE=/nvmefs1/agnieszka.ciborowska
   image: determinedai/genai-train:latest
 resources:
   slots_per_trial: 2
@@ -67,8 +61,3 @@ entrypoint: >-
   python -m determined.launch.deepspeed
   python sft_finetune.py
 max_restarts: 0
-bind_mounts:
-  - container_path: /nvmefs1/agnieszka.ciborowska
-    host_path: /nvmefs1/agnieszka.ciborowska
-    propagation: rprivate
-    read_only: false

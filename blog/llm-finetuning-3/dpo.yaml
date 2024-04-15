@@ -1,14 +1,8 @@
-name: gemma-2b dpo + sft tokens (9987)
+name: gemma-2b dpo
 debug: false
-workspace: agnieszka
-project: llm-blog3-test
 environment:
   environment_variables:
     - NCCL_DEBUG=INFO
-    - TRANSFORMERS_CACHE=/nvmefs1/agnieszka.ciborowska
-    - HF_DATASETS_CACHE=/nvmefs1/agnieszka.ciborowska
-    - HF_HOME=/nvmefs1/agnieszka.ciborowska
-    - HF_MODULES_CACHE=/nvmefs1/agnieszka.ciborowska
   image: determinedai/genai-train:latest
 resources:
   slots_per_trial: 2
@@ -21,11 +15,8 @@ searcher:
   metric: eval_accuracy
   smaller_is_better: false
 hyperparameters:
-  # model_name: "google/gemma-2b-it"
-  # model_ckpt: "6b6fbaa7-faa9-4449-867b-2939a147a335" # sft special tokens + completions
-  #model_ckpt: "dcb7e618-4e8f-402e-8013-f5cab1ff9eb7" # sft basic (9989)
-  model_ckpt: "eb1a1782-d1d8-40f7-90e6-2a09827aa6b9" # sft tokens (9987)
-  # model_ckpt: "0ac7dcf3-7e53-4432-8303-26d2af67c664" # sft completions (9988)
+  model_name: "google/gemma-2b-it"
+  # model_ckpt: "6b6fbaa7-faa9-4449-867b-2939a147a335"
   datasets:
     - "argilla/dpo-mix-7k"
     - "jondurbin/truthy-dpo-v0.1"
@@ -69,8 +60,3 @@ entrypoint: >-
   python -m determined.launch.deepspeed
   python dpo_finetune.py
 max_restarts: 0
-bind_mounts:
-  - container_path: /nvmefs1/agnieszka.ciborowska
-    host_path: /nvmefs1/agnieszka.ciborowska
-    propagation: rprivate
-    read_only: false
