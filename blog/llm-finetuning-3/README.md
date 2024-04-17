@@ -1,4 +1,4 @@
-# From a pre-trained model to an AI assistant: Finetuning Gemma-2B using DPO
+# Finetuning Gemma-2B using DPO
 
 In this demo, we train the [Gemma-2B](https://huggingface.co/google/gemma-2b) model to both understand 
 instructions and produce outputs that align with human preferences. 
