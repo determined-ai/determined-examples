@@ -1,4 +1,4 @@
-# From pretrained Gemma-2b to 
+# From a pre-trained model to an AI assistant: Finetuning Gemma-2B using DPO
 
 In this demo, we train the [Gemma-2B](https://huggingface.co/google/gemma-2b) model to both understand 
 instructions and produce outputs that align with human preferences. 
@@ -33,7 +33,7 @@ Change configuration options in `sft.yaml` or `dpo.yaml`. Some important options
 For SFT step, you can also set:
 - `dataset_subsets`: update ratios of datasets.
 - `data_collator`: turns on/off training on completions only.
-- `chat_tokens`: adds special chat tokens to the vocabularyn.
+- `chat_tokens`: adds special chat tokens to the vocabulary.
 - `max_seq_length`: sets maximum sequence length.
 
 For DPO step, you have the following options:
@@ -67,5 +67,6 @@ python inference.py
 
 ## Contributors
 
-- [Kevin Musgrave](https://github.com/KevinMusgrave)
 - [Agnieszka Ciborowska](https://github.com/aciborowska)
+- [Kevin Musgrave](https://github.com/KevinMusgrave)
+
