@@ -1,0 +1,62 @@
+name: gemma-2b dpo
+debug: false
+environment:
+  environment_variables:
+    - NCCL_DEBUG=INFO
+  image: determinedai/genai-train:latest
+resources:
+  slots_per_trial: 2
+  resource_pool: A100
+  max_slots: 8
+searcher:
+  name: grid
+  max_length:
+    batches: 5000
+  metric: eval_accuracy
+  smaller_is_better: false
+hyperparameters:
+  model_name: "google/gemma-2b-it"
+  # model_ckpt: "6b6fbaa7-faa9-4449-867b-2939a147a335"
+  datasets:
+    - "argilla/dpo-mix-7k"
+    - "jondurbin/truthy-dpo-v0.1"
+  dpo_beta:
+    type: categorical
+    vals:
+      - 0.1
+      - 0.05
+      - 0.01
+  dpo_loss: "sigmoid"
+  max_length: 4096
+  max_prompt_length: 2048
+  max_target_length: 2048
+  precompute_ref_log_probs: true
+  training_args:
+    output_dir: "/tmp/llm_finetuning"
+    num_train_epochs: 2
+    per_device_train_batch_size: 1
+    per_device_eval_batch_size: 1
+    bf16: true
+    bf16_full_eval: true
+    evaluation_strategy: "steps"
+    eval_steps: 100
+    logging_strategy: "steps"
+    logging_steps: 10
+    save_strategy: "epoch"
+    save_steps: 1
+    learning_rate:
+      type: categorical
+      vals:
+        - 1e-7
+        - 5e-7
+        - 5e-8
+    gradient_accumulation_steps: 8
+    gradient_checkpointing: true
+    deepspeed: "ds_configs/ds_config_stage_2.json"
+    warmup_ratio: 0.1
+    lr_scheduler_type: "cosine"
+    optim: "adamw_torch"
+entrypoint: >-
+  python -m determined.launch.deepspeed
+  python dpo_finetune.py
+max_restarts: 0

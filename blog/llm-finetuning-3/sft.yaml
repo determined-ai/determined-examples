@@ -1,0 +1,63 @@
+name: gemma-2b sft
+debug: false
+environment:
+  environment_variables:
+    - NCCL_DEBUG=INFO
+  image: determinedai/genai-train:latest
+resources:
+  slots_per_trial: 2
+  resource_pool: A100
+searcher:
+  name: single
+  max_length:
+    batches: 5000
+  metric: eval_accuracy
+  smaller_is_better: false
+hyperparameters:
+  model: "google/gemma-2b"
+  dataset: "HuggingFaceTB/cosmopedia"
+  dataset_subsets:
+    - subset: web_samples_v2
+      number_of_samples: 15000
+    - subset: stanford
+      number_of_samples: 5000
+    - subset: stories
+      number_of_samples: 10000
+    - subset: wikihow
+      number_of_samples: 5000
+    - subset: openstax
+      number_of_samples: 7500
+    - subset: khanacademy
+      number_of_samples: 7500
+    - subset: auto_math_text
+      number_of_samples: 10000
+  max_seq_length: 4096
+  data_collator:
+    on_completions_only: false
+    response_template: "<|im_start|>assistant\n"
+  chat_tokens:
+    add_chat_tokens: false
+    special_tokens:
+      - "<|im_start|>"
+      - "<|im_end|>"
+  training_args:
+    output_dir: "/tmp/llm_finetuning"
+    num_train_epochs: 1
+    per_device_train_batch_size: 1
+    per_device_eval_batch_size: 4
+    bf16: true
+    evaluation_strategy: "steps"
+    eval_steps: 250
+    logging_strategy: "steps"
+    logging_steps: 10
+    save_strategy: "epoch"
+    save_steps: 1
+    learning_rate: 1e-5
+    gradient_accumulation_steps: 8
+    deepspeed: "ds_configs/ds_config_stage_2.json"
+    warmup_ratio: 0.1
+    seed: 43
+entrypoint: >-
+  python -m determined.launch.deepspeed
+  python sft_finetune.py
+max_restarts: 0
