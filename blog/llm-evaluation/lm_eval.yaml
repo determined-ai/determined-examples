@@ -1,0 +1,47 @@
+name: lm eval
+debug: false
+environment:
+  environment_variables:
+    - NCCL_DEBUG=INFO
+    - TRANSFORMERS_CACHE=/nvmefs1/agnieszka.ciborowska
+    - HF_DATASETS_CACHE=/nvmefs1/agnieszka.ciborowska
+    - HF_HOME=/nvmefs1/agnieszka.ciborowska
+    - HF_MODULES_CACHE=/nvmefs1/agnieszka.ciborowska
+  image: determinedai/genai-train:latest
+resources:
+  slots_per_trial: 1
+  resource_pool: A100
+  max_slots: 4
+searcher:
+  name: grid
+  max_length:
+    batches: 5000
+  metric: eval_accuracy
+  smaller_is_better: false
+hyperparameters:
+  model_args:
+    hf_model_name: "google/gemma-2b-it"
+    # model_ckpt: "dcb7e618-4e8f-402e-8013-f5cab1ff9eb7"
+    trust_remote_code: true
+    use_accelerate: false
+  batch_size: 4
+  max_batch_size: 4
+  task:
+    type: categorical
+    vals:
+      - name: arc_challenge
+        num_fewshot: 25
+      - name: truthfulqa_mc
+        num_fewshot: 0
+      - name: hellaswag
+        num_fewshot: 10
+      - name: hendrycks*
+        num_fewshot: 5
+      - name: winogrande
+        num_fewshot: 5
+      - name: gsm8k
+        num_fewshot: 5
+  device: "cuda"
+entrypoint: >-
+  python run_lm_eval_harness.py
+max_restarts: 0
