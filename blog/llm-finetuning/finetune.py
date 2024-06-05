@@ -3,6 +3,7 @@ import evaluate
 from determined.transformers import DetCallback
 from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
 from trl import DataCollatorForCompletionOnlyLM
+from peft import LoraConfig, get_peft_model
 
 from chat_format import ASSISTANT_PROMPT, CHAT_ML_TEMPLATE, EOS_TOKEN, get_chat_format
 from dataset_utils import load_or_create_dataset
@@ -26,6 +27,11 @@ def preprocess_logits_for_metrics(logits, labels):
 def main(training_args, det_callback, hparams):
     model_name = hparams["model"]
     model, tokenizer = get_model_and_tokenizer(model_name)
+    # Add lora adapters if specified in the determined experiment config
+    if 'lora_args' in hparams:
+        lora_config = LoraConfig(**hparams['lora_args'])
+        model = get_peft_model(model, lora_config)
+        model.print_trainable_parameters()
 
     def tokenize(element):
         formatted = tokenizer.apply_chat_template(
