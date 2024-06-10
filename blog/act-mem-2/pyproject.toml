@@ -1,0 +1,41 @@
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # flake8-bugbear
+    "B",
+    # isort
+    "I",
+]
+
+[tool.ruff.per-file-ignores]
+# Ignore import violations in all `__init__.py` files
+"__init__.py" = ["E402", "F401"]
+
+[tool.mypy]
+python_version = "3.9"
+follow_imports = "silent"
+ignore_missing_imports = "True"
+check_untyped_defs = "True"
+disallow_untyped_defs = "True"
+disallow_subclassing_any = "True"
+no_implicit_optional = "True"
+strict_equality = "True"
+disallow_untyped_decorators = "True"
+warn_redundant_casts = "True"
+warn_unused_configs = "True"
+
+[tool.pytest.ini_options]
+addopts = "-vv -rEfXsx --tb=native --capture=sys -p no:warnings --strict-markers"
+testpaths = ["tests"]
+markers = [
+    "world_size: Change world size of individual tests in a class",
+    "accelerator: Requires an accelerator",
+]
+
+
