@@ -1,3 +1,7 @@
+"""
+Prints out the ratio of activation memory for the MLP layer when using ReLU vs GELU.
+"""
+
 import torch
 import torch.nn as nn
 
@@ -37,4 +41,4 @@ if __name__ == "__main__":
         print(f"{name} bytes: {saved.saved_tensor_mem}")
         mem_bytes.append(saved.saved_tensor_mem)
 
-    print(f"ReLU/GeLU act mem ratio: {mem_bytes[0]/mem_bytes[1]}")
+    print(f"ReLU/GELU act mem ratio: {mem_bytes[0]/mem_bytes[1]}")

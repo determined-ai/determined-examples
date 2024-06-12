@@ -16,11 +16,6 @@ N_HEADS = (2, 4)
 DEVICES = ["cpu"]
 if torch.cuda.is_available():
     DEVICES.append("cuda")
-    # IMPORTANT: Perform a tiny matmul to load linear algebra libraries, which are only loaded upon
-    # demand. Failing to do this leads to AllocatedMemContext measuring the library size upon the
-    # performing the first matmul
-    _ = torch.cuda.current_blas_handle()
-    torch.empty(1, 1, device="cuda") @ torch.empty(1, 1, device="cuda")
 
 
 ZERO_MEM_ACT_FNS = [
@@ -49,7 +44,7 @@ class TestSavedTensorContext:
     @pytest.mark.parametrize("batch_size", BATCH_SIZES)
     def test_linear(self, device: str, d_model: int, batch_size: int) -> None:
         """
-        Test simple linear layer. The inputs should be saved for backwards
+        Test a simple linear layer. The inputs should be saved for backwards
         """
         inputs = torch.randn(batch_size, d_model, requires_grad=True, device=device)
         lin = nn.Linear(d_model, d_model, device=device)
