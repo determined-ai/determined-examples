@@ -11,6 +11,7 @@ This repository contains a variety of Determined examples that are not actively 
 ## Blog posts
 | Example                                 | Description                                                                  |
 |:---------------------------------------:|:----------------------------------------------------------------------------:|
+| [Activation Memory: Part 2](blog/llm-finetuning) | Measuring activation memory in PyTorch. |
 | [LLM Finetuning](blog/llm-finetuning) | Finetuning TinyLlama-1.1B on Text-to-SQL. |
 | [LLM Finetuning 2](blog/llm-finetuning-2) | Finetuning Mistral-7B on Text-to-SQL using LoRA and DeepSpeed. |
 | [LLM Finetuning 3](blog/llm-finetuning-3) | Finetuning Gemma-2B using DPO. |
