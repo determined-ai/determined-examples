@@ -1,3 +1,7 @@
+"""
+Prints out the ratio of activation memory for the a transformer Block when using ReLU vs GELU.
+"""
+
 import torch
 import torch.nn as nn
 
