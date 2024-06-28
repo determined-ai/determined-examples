@@ -1,6 +1,6 @@
 """
-A sharded dot-product computed over multiple processes. Uses CPU, the gloo backend, and
-multi-processing, so that the code can run anywhere.
+A sharded dot-product with intermediate activation function computed over multiple processes. Uses
+CPU, the gloo backend, and multi-processing, so that the code can run anywhere.
 """
 
 import os
@@ -27,6 +27,7 @@ def compute_dot_product(rank: int):
     assert (
         not D_MODEL % WORLD_SIZE
     ), f"Choose D_MODEL to be divisible by WORLD_SIZE {D_MODEL % WORLD_SIZE=}."
+    act_fn = torch.nn.GELU()
 
     # Setup: populate the same tensors on all devices. The full tensors will be used to check
     # correctness.
@@ -41,14 +42,14 @@ def compute_dot_product(rank: int):
     # Compute the dot-product via collectives.
 
     # Each rank first computes their local dot-product using the available shards:
-    c = a_sharded @ b_sharded
+    c = a_sharded @ act_fn(b_sharded)
 
     # The computation is completed by summing over processes:
     dist.init_process_group(backend="gloo")
     dist.all_reduce(c)
 
     # Test correctness:
-    torch.testing.assert_close(c, a @ b)
+    torch.testing.assert_close(c, a @ act_fn(b))
     return f"Correct results on {rank=}"
 
 

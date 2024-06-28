@@ -1,0 +1,22 @@
+name: MLP TP Profiling
+# Adjust the workspace and project names, as appropriate.
+workspace: TP Blog Post
+project: MLP TP Profiling
+resources:
+  slots_per_trial: 8
+searcher:
+  name: single
+  metric: not_used
+  max_length: 1
+hyperparameters:
+  batch_size: 1
+  seq_len: 4096
+  d_model_min: 1024
+  d_model_max: 16384
+  d_model_step: 512
+  num_warmups: 5
+  num_repeats: 100
+entrypoint: >-
+  python3 -m determined.launch.torch_distributed
+  python3 tp_profiling.py
+max_restarts: 0

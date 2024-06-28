@@ -68,7 +68,7 @@ class LinearShardedOutputs(nn.Linear):
         dtype: Optional[torch.dtype] = None,
     ) -> None:
         sharded_out_features, remainder = divmod(out_features, group.size())
-        assert not remainder, "out_features must be divisible by tp_degree"
+        assert not remainder, "out_features must be divisible by the ProcessGroup size"
         super().__init__(
             in_features=in_features,
             out_features=sharded_out_features,
@@ -79,6 +79,7 @@ class LinearShardedOutputs(nn.Linear):
         self.group = group
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+        # Wrap the unsharded inputs for backwards-pass correctness.
         x = IdentityFwdAllReduceBwd.apply(inputs, self.group)
         x = super().forward(x)
         return x
@@ -94,7 +95,7 @@ class LinearShardedInputs(nn.Linear):
         dtype: Optional[torch.dtype] = None,
     ) -> None:
         sharded_in_features, remainder = divmod(in_features, group.size())
-        assert not remainder, "out_features must be divisible by tp_degree"
+        assert not remainder, "in_features must be divisible by the ProcessGroup size"
         super().__init__(
             in_features=sharded_in_features,
             out_features=out_features,
@@ -105,8 +106,9 @@ class LinearShardedInputs(nn.Linear):
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         x = inputs @ self.weight.T
-        # Crucial: all-reduce/reduce-scatter _before_ adding the bias.
+        # Wrap the mat-mul in an all-reduce forwards-pass correctness.
         x = AllReduceFwdIdentityBwd.apply(x, self.group)
+        # Crucial: add the bias _after_ the all-reduce.
         x = x + self.bias
         return x
 
