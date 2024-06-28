@@ -1,11 +1,8 @@
-# Activation Memory: Part 2
+# Tensor Parallelism
 
-Code accompanying the deep-dive [blog post on activation memory](https://determined.ai/blog/act-mem-2).
+Code accompanying the deep-dive [blog post on Tensor Parallelism](https://determined.ai/blog/tp).
 
-- The main utility code is in `act_mem.py`. 
-- Basic transformer layers are implemented in `layers.py`.
-- The scripts `{block,mlp}_script.py` demonstrate how replacing `GELU` with `ReLU` affects activation
-memory. 
-- `attn_script.py` shows the cost of activation memory in the attention layer. 
-- Tests of the code are in `test.py`. 
-- See `requirements.txt` for versions the code was built against.
+- The MLP and TP MLP layers are in `layer.py`
+- Matmul profiling code in `matmul_profiling.py`
+- MLP TP profiling code in `tp_profiling.py`
+- Tests of the rearranging tensor sums are in `test_dot_product_{local,distributed}.py`
