@@ -110,6 +110,8 @@ def main(
 
     for tp_degree in tp_degrees:
         for d_model in range(d_model_min, d_model_max + 1, d_model_step):
+            dist.barrier()
+            torch.cuda.synchronize()
             profile_and_report(
                 core_context=core_context,
                 batch_size=batch_size,
