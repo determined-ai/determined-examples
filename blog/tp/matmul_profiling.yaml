@@ -1,0 +1,20 @@
+name: Matmul Profiling
+# Adjust the workspace and project names, as appropriate.
+workspace: TP Blog Post
+project: Matmul Profiling
+resources:
+  slots_per_trial: 1
+searcher:
+  name: single
+  metric: not_used
+  max_length: 1
+hyperparameters:
+  d_model_min: 256
+  d_model_max: 16384
+  d_model_step: 256
+  num_warmups: 5
+  num_repeats: 100
+entrypoint: >-
+  python3 -m determined.launch.torch_distributed
+  python3 matmul_profiling.py
+max_restarts: 0
