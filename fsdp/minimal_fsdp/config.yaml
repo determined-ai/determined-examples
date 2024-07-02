@@ -1,0 +1,26 @@
+name: fsdp example
+entrypoint: python3 -m determined.launch.torch_distributed -- python3 fsdp.py
+searcher:
+  name: single
+  metric: loss
+  max_length: 100
+resources:
+  slots_per_trial: 2
+environment:
+  image:
+    gpu: determinedai/environments:cuda-11.8-pytorch-2.0-gpu-mpi-0.31.1
+hyperparameters:
+  batch_size: 1
+  lr: 1e-4
+  d_model: 512
+  max_seq_len: 2048
+  n_heads: 8
+  n_layers: 4
+  vocab_size: 32000
+  report_rate: 10
+  checkpoint_rate: 50
+  amp_dtype: float16
+  validation_batches: 10
+  core_api_profiler: false
+  torch_profiler: false
+max_restarts: 0
