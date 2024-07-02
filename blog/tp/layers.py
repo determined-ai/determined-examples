@@ -34,7 +34,8 @@ class AllReduceFwdIdentityBwd(torch.autograd.Function):
     def forward(
         ctx: Any, inputs: torch.Tensor, group: Optional[dist.ProcessGroup] = None
     ) -> torch.Tensor:
-        inputs = inputs.clone()
+        # NOTE: a general-purpose implementation would clone the inputs, rather than overwriting the
+        # inputs buffer.
         dist.all_reduce(inputs, group=group)
         return inputs
 
@@ -53,7 +54,8 @@ class IdentityFwdAllReduceBwd(torch.autograd.Function):
 
     @staticmethod
     def backward(ctx: Any, grad_outputs: torch.Tensor) -> tuple[torch.Tensor, None]:
-        grad_outputs = grad_outputs.clone()
+        # NOTE: a general-purpose implementation would use AllReduceFwdIdentityBwd to perform the
+        # reduction
         dist.all_reduce(grad_outputs, group=ctx.group)
         return grad_outputs, None
 
