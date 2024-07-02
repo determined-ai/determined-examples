@@ -19,7 +19,7 @@ hyperparameters:
   vocab_size: 32000
   report_rate: 10
   checkpoint_rate: 50
-  use_amp: true
+  amp_dtype: float16
   validation_batches: 10
   core_api_profiler: false
   torch_profiler: false

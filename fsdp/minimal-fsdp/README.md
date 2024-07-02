@@ -17,7 +17,7 @@ Settings can be changed in `config.yaml` `hyperparameters` section.
 * `d_model`, `max_seq_len`, `n_heads`, `n_layers`, `vocab_size`: Model architecture parameters.  Check code for more details.
 * `report_rate`: Number of training steps to take between metric reports.
 * `checkpoint_rate`: Number of training steps to take between checkpoint saves.
-* `use_amp`: Whether to use torch automatic mixed-precision.
+* `amp_dtype`: Whether to use torch automatic mixed-precision, and which dtype to use.  Options are `'auto'`, `'bfloat16'`, `'float16'`, and `null`.
 * `validation_batches`: Number of batches to use when calculating validation metrics.
 * `core_api_profiler`: Set to true to enable Core API profiler.  Results visible in Web UI.
 * `torch_profiler`: Set to true to enable `torch` profiler.  Results visible in Tensorboard, which can be launched through the Web UI.

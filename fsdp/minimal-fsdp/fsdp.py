@@ -11,7 +11,7 @@ import torch.distributed as dist
 import torch.nn.functional as F
 from torch.distributed.fsdp import FullStateDictConfig
 from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
-from torch.distributed.fsdp import ShardingStrategy, StateDictType
+from torch.distributed.fsdp import MixedPrecision, ShardingStrategy, StateDictType
 from torch.distributed.fsdp.sharded_grad_scaler import ShardedGradScaler
 from torch.distributed.fsdp.wrap import ModuleWrapPolicy
 
@@ -98,7 +98,7 @@ def save_checkpoint(
     fsdp_model: FSDP,
     optimizer: torch.optim.Optimizer,
     scaler: ShardedGradScaler,
-    use_amp: bool,
+    use_scaler: bool,
     core_context: det.core.Context,
     steps_completed: int,
 ) -> None:
@@ -121,7 +121,7 @@ def save_checkpoint(
         ):
             torch.save(model_state_dict, path.joinpath("model.bin"))
             torch.save(optim_state_dict, path.joinpath("optim.bin"))
-            if use_amp:
+            if use_scaler:
                 # Scaler state is automatically the same across ranks.
                 scaler_state_dict = scaler.state_dict()
                 torch.save(scaler_state_dict, path.joinpath("scaler.bin"))
@@ -131,7 +131,7 @@ def load_checkpoint(
     fsdp_model: FSDP,
     optimizer: torch.optim.Optimizer,
     scaler: ShardedGradScaler,
-    use_amp: bool,
+    use_scaler: bool,
     core_context: det.core.Context,
     device: torch.device,
     uuid: str,
@@ -155,7 +155,7 @@ def load_checkpoint(
             )
             optimizer.load_state_dict(optim_state_dict_to_load)
         scaler_path = path.joinpath("scaler.bin")
-        if use_amp and os.path.isfile(scaler_path):
+        if use_scaler and os.path.isfile(scaler_path):
             scaler.load_state_dict(torch.load(scaler_path))
 
         with open(path.joinpath("metadata.json"), "r") as f:
@@ -163,6 +163,24 @@ def load_checkpoint(
 
     last_step_completed = metadata["steps_completed"]
     return last_step_completed
+
+
+def get_amp_dtype(amp_dtype_str: Optional[str]) -> Optional[torch.dtype]:
+    if amp_dtype_str is None:
+        return None
+    elif amp_dtype_str == "auto":
+        compute_capability = torch.cuda.get_device_capability()
+        if compute_capability[0] < 8:
+            return torch.float16
+        else:
+            return torch.bfloat16
+    elif amp_dtype_str in ["float16", "bfloat16"]:
+        return getattr(torch, amp_dtype_str)
+    else:
+        raise Exception(
+            f"Unknown amp_dtype {amp_dtype_str}. Please set to one of "
+            "'auto'/'bfloat16'/'float16'/null."
+        )
 
 
 def main(
@@ -179,6 +197,10 @@ def main(
     # Get and set the device for this process
     device = torch.device(f"cuda:{core_context.distributed.local_rank}")
     torch.cuda.set_device(device)
+
+    amp_dtype = get_amp_dtype(hparams["amp_dtype"])
+    use_amp = amp_dtype is not None
+    use_scaler = amp_dtype == torch.float16
 
     # Build the unsharded model directly on the device.
     model = Transformer(
@@ -198,10 +220,18 @@ def main(
     # Wrap the embedding layer, the lm head, and each transformer block into its own FSDP unit:
     auto_wrap_policy = ModuleWrapPolicy([TransformerBlock, EmbedAndEncode, LMHead])
 
+    # Let FSDP know to use mixed precision settings.
+    mixed_precision = (
+        MixedPrecision(param_dtype=amp_dtype, reduce_dtype=amp_dtype)
+        if use_amp
+        else None
+    )
+
     # The fsdp model:
     fsdp_model = FSDP(
         model,
         auto_wrap_policy=auto_wrap_policy,
+        mixed_precision=mixed_precision,
         sharding_strategy=ShardingStrategy.FULL_SHARD,
         device_id=device,
         use_orig_params=True,
@@ -219,7 +249,6 @@ def main(
     report_rate = hparams["report_rate"]
     checkpoint_rate = hparams["checkpoint_rate"]
     validation_batches = hparams["validation_batches"]
-    use_amp = hparams["use_amp"]
     use_torch_profiler = hparams["torch_profiler"]
     train_loss_history = []
 
@@ -231,14 +260,14 @@ def main(
         "device": device,
     }
     train_data_iter = get_fake_data_iter(is_validation=False, **data_iter_arguments)
-    scaler = ShardedGradScaler(enabled=use_amp)
+    scaler = ShardedGradScaler(enabled=use_scaler)
     # If a previous checkpoint exists, load it now and correct the steps_completed:
     if checkpoint_uuid is not None:
         steps_completed = load_checkpoint(
             fsdp_model,
             optimizer,
             scaler,
-            use_amp,
+            use_scaler,
             core_context,
             device,
             checkpoint_uuid,
@@ -299,7 +328,7 @@ def main(
                     fsdp_model,
                     optimizer,
                     scaler,
-                    use_amp,
+                    use_scaler,
                     core_context,
                     steps_completed,
                 )
