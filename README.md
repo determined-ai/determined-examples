@@ -88,3 +88,9 @@ This repository contains a variety of Determined examples that are not actively 
 | Example                                                                  | Dataset | Framework  |
 |:------------------------------------------------------------------------:|:-------:|:----------:|
 | [asha\_search\_method](custom_search_method/asha_search_method)          | MNIST   | PyTorch    |
+
+## Fully Sharded Data Parallel
+
+| Example                                                                  | Framework  |
+|:------------------------------------------------------------------------:|:----------:|
+| [minimal\_fsdp](fsdp/minimal_fsdp)          | PyTorch    |
