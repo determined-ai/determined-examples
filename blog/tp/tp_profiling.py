@@ -55,7 +55,13 @@ def profile_and_report(
 
     # Mean and std TFLOP computations
     mlp_flops = 16 * batch_size * seq_len * d_model**2
-    time_s_t = torch.tensor(timer.time_s_list)
+
+    time_s_t = torch.tensor(timer.time_s_list, device=device)
+    # Use the worst-reported times across GPUs as the true timing metrics, if applicable.
+    if tp_degree > 1:
+        time_s_t = time_s_t.to(device)
+        dist.all_reduce(time_s_t, group=pg_dict[tp_degree], op=dist.ReduceOp.MAX)
+        time_s_t = time_s_t.cpu()
     tflop_s_gpu_t = mlp_flops / time_s_t / 1e12 / tp_degree
     metrics = {
         "d_model": d_model,
