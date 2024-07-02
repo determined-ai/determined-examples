@@ -44,7 +44,9 @@ class Attention(nn.Module):
         bsz, seqlen, _ = inputs.shape
 
         # Get queries, keys, and values
-        q, k, v = self.wqkv(inputs).split([self.d_model, self.d_model, self.d_model], dim=-1)
+        q, k, v = self.wqkv(inputs).split(
+            [self.d_model, self.d_model, self.d_model], dim=-1
+        )
         q = q.view(bsz, seqlen, self.n_heads, self.head_dim)
         k = k.view(bsz, seqlen, self.n_heads, self.head_dim)
         v = v.view(bsz, seqlen, self.n_heads, self.head_dim)
@@ -120,7 +122,9 @@ class EmbedAndEncode(nn.Module):
         super().__init__()
         # Learned positional encoding and embedding layer:
         self.max_seq_len = max_seq_len
-        self.learned_pos_enc = nn.Parameter(torch.zeros(max_seq_len, d_model, device=device))
+        self.learned_pos_enc = nn.Parameter(
+            torch.zeros(max_seq_len, d_model, device=device)
+        )
         self.tok_embeddings = nn.Embedding(vocab_size, d_model, device=device)
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
@@ -160,7 +164,9 @@ class Transformer(nn.Module):
         super().__init__()
 
         # Embed/encode
-        self.embed_and_encode = EmbedAndEncode(d_model, vocab_size, max_seq_len, device=device)
+        self.embed_and_encode = EmbedAndEncode(
+            d_model, vocab_size, max_seq_len, device=device
+        )
 
         # Transformer blocks
         self.layers = nn.ModuleList(
