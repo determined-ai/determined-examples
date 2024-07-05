@@ -6,6 +6,7 @@ import determined as det
 import evaluate
 import torch
 import transformers
+import wandb
 from determined.transformers import DetCallback
 from peft import AutoPeftModelForCausalLM, LoraConfig, get_peft_model
 from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
@@ -173,6 +174,29 @@ if __name__ == "__main__":
         distributed = det.core.DistributedContext.from_torch_distributed()
 
     with det.core.init(distributed=distributed) as core_context:
+        if core_context.distributed.rank == 0:
+            wandb.login(key=hparams["wandb_key"])
+            import uuid
+            # Generate a UUID
+            my_uuid = uuid.uuid4()
+            # Convert UUID to string
+            uuid_str = str(my_uuid)[:5]
+            r = hparams["r"]
+            lora_alpha = hparams["lora_alpha_in_r"]
+            lora_dropout = hparams["lora_dropout"]
+            dataset_subset = hparams["dataset_subset"]
+            run_name = f"test_lora_blog_{dataset_subset}_r_{r}_alpha_in_r_{lora_alpha}_dropout_{lora_dropout}_{uuid_str}"
+            run = wandb.init(
+                project="lora-blog", 
+                name=run_name, 
+                config={
+                    "r":hparams["r"],
+                    "lora_alpha_in_r":hparams["lora_alpha_in_r"],
+                    "dropout":hparams["lora_dropout"],
+                    "dataset_subset":hparams["dataset_subset"],
+                    "model":hparams["model"]
+                }
+            )
         det_callback = DetCallback(
             core_context,
             training_args,
