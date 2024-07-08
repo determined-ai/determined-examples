@@ -9,3 +9,8 @@ memory.
 - `attn_script.py` shows the cost of activation memory in the attention layer. 
 - Tests of the code are in `test.py`. 
 - See `requirements.txt` for versions the code was built against.
+
+
+## Contributors
+
+- [Garrett Goon](https://github.com/garrett361)
