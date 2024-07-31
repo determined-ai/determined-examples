@@ -1,6 +1,6 @@
 import logging
 import sys
-
+from transformers import Trainer, default_data_collator
 import datasets
 import determined as det
 import evaluate
@@ -11,12 +11,15 @@ from determined.transformers import DetCallback
 from peft import AutoPeftModelForCausalLM, LoraConfig, get_peft_model
 from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
 from trl import DataCollatorForCompletionOnlyLM
+from itertools import chain
+from typing import Dict
 
 from chat_format import get_chat_format, get_response_template_ids, set_special_tokens
 from dataset_utils import load_or_create_dataset
 
 logger = logging.getLogger(__name__)
 
+block_size = 1024
 
 def get_tokenizer(model_name, model_commit_hash):
     tokenizer = AutoTokenizer.from_pretrained(
@@ -48,7 +51,7 @@ def get_model_and_tokenizer(model_name, use_lora, hparams, inference=False, devi
             torch_dtype=torch.bfloat16,
             revision=model_commit_hash,
         )
-
+        # model.gradient_checkpointing_enable({"use_reentrant": False})
         if use_lora:
             r = hparams["r"]
             lora_alpha = r * hparams["lora_alpha_in_r"]
@@ -61,6 +64,7 @@ def get_model_and_tokenizer(model_name, use_lora, hparams, inference=False, devi
             )
 
             model = get_peft_model(model, peft_config)
+            
 
     tokenizer = get_tokenizer(model_name, model_commit_hash=model_commit_hash)
     return model, tokenizer
@@ -79,6 +83,23 @@ def preprocess_logits_for_metrics(logits, labels):
         # like past_key_values, but logits always come first
         logits = logits[0]
     return logits.argmax(dim=-1)
+
+
+def group_texts(examples) -> Dict:
+    # Concatenate all texts.
+    concatenated_examples = {k: list(chain(*examples[k])) for k in examples.keys()}
+    total_length = len(concatenated_examples[list(examples.keys())[0]])
+    # We drop the small remainder, we could add padding if the model supported it instead
+    # of this drop, you can customize this part to your needs.
+    if total_length >= block_size:
+        total_length = (total_length // block_size) * block_size
+    # Split by chunks of max_len.
+    result = {
+        k: [t[i : i + block_size] for i in range(0, total_length, block_size)]
+        for k, t in concatenated_examples.items()
+    }
+    result["labels"] = result["input_ids"].copy()
+    return result
 
 
 def main(training_args, det_callback, hparams):
@@ -114,6 +135,13 @@ def main(training_args, det_callback, hparams):
         response_template_ids, tokenizer=tokenizer
     )
 
+    with training_args.main_process_first(desc="grouping texts together", local=False):
+        lm_datasets = dataset.map(
+            group_texts,
+            batched=True,
+            desc=f"Grouping texts in chunks of {block_size}",
+        )
+
     bleu = evaluate.load("bleu")
     acc = evaluate.load("accuracy")
 
@@ -140,9 +168,9 @@ def main(training_args, det_callback, hparams):
         args=training_args,
         model=model,
         tokenizer=tokenizer,
-        data_collator=collator,
-        train_dataset=dataset["train"],
-        eval_dataset=dataset["valid"],
+        data_collator=default_data_collator,
+        train_dataset=lm_datasets["train"],
+        eval_dataset=lm_datasets["valid"],
         preprocess_logits_for_metrics=preprocess_logits_for_metrics,
         compute_metrics=compute_metrics,
     )
@@ -167,8 +195,20 @@ if __name__ == "__main__":
 
     info = det.get_cluster_info()
     hparams = info.trial.hparams
+    import os
+
+    # Get the current working directory
+    current_directory = os.getcwd()
+
+    if hparams["training_args"]["deepspeed"]:
+        hparams["training_args"]["deepspeed"] = "ds_configs/ds_config_stage_3.json"
     training_args = TrainingArguments(**hparams["training_args"])
+
     if training_args.deepspeed:
+        os.environ["LOCAL_SIZE"] = os.environ["LOCAL_WORLD_SIZE"]
+        os.environ["CROSS_RANK"] = str(int(os.environ["RANK"]) // int(os.environ["LOCAL_WORLD_SIZE"]))
+        os.environ["CROSS_SIZE"] = str(int(os.environ["WORLD_SIZE"]) // int(os.environ["LOCAL_WORLD_SIZE"]))
+        os.environ["CHIEF_IP"] = os.environ["DET_CHIEF_IP"]
         distributed = det.core.DistributedContext.from_deepspeed()
     else:
         distributed = det.core.DistributedContext.from_torch_distributed()

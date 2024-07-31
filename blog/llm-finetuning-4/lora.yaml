@@ -7,7 +7,7 @@ environment:
     gpu: determinedai/environments:cuda-11.8-pytorch-2.0-gpu-95c7a14
     cpu: determinedai/environments:py-3.10-pytorch-2.0-cpu-03ae7d7
 resources:
-  slots_per_trial: 4
+  slots_per_trial: 8
   resource_pool: a100
 workspace: swy_5
 project: lora-blog
@@ -38,9 +38,10 @@ hyperparameters:
   training_args:
     output_dir: "/tmp/llm_finetuning"
     max_steps: 5000
-    per_device_train_batch_size: 4
-    per_device_eval_batch_size: 4
-    bf16: true
+    per_device_train_batch_size: 1
+    per_device_eval_batch_size: 1
+    fp16: true
+    bf16: false
     evaluation_strategy: "steps"
     eval_steps: 1000
     logging_strategy: "steps"
@@ -49,6 +50,9 @@ hyperparameters:
     save_steps: 1000
     learning_rate: 1e-5
     report_to: "wandb"
+    deepspeed: true
+    # gradient_checkpointing: true 
+
 entrypoint: >-
   python -m determined.launch.torch_distributed
   python finetune.py
