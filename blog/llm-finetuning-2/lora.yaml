@@ -7,7 +7,7 @@ environment:
     gpu: determinedai/environments:cuda-11.8-pytorch-2.0-gpu-95c7a14
     cpu: determinedai/environments:py-3.10-pytorch-2.0-cpu-03ae7d7
 resources:
-  slots_per_trial: 2
+  slots_per_trial: 8
 searcher:
   name: single
   max_length:
