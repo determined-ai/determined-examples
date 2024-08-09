@@ -1,49 +1,63 @@
-name: mistral lora easy
+name: mistral lora hard
 debug: false
 environment:
   environment_variables:
     - NCCL_DEBUG=INFO
+    - NCCL_SOCKET_IFNAME=ens,eth,ib
   image: 
     gpu: determinedai/environments:cuda-11.8-pytorch-2.0-gpu-95c7a14
     cpu: determinedai/environments:py-3.10-pytorch-2.0-cpu-03ae7d7
 resources:
   slots_per_trial: 2
+  resource_pool: a100
+workspace: swy_5
+project: lora-blog
 searcher:
   name: grid
   max_length:
-    batches: 5000
+    batches: 3000
   metric: eval_accuracy
   smaller_is_better: false
 hyperparameters:
   model: "mistralai/Mistral-7B-Instruct-v0.2"
   model_commit_hash: "99259002b41e116d28ccb2d04a9fbe22baed0c7f"
-  dataset_subset: "easy"
+  dataset_subset: "hard"
+  block_size: 2048
+  group_text: false
   lora: true
   # Tunable hyperparameters
   r:
     type: categorical
-    vals: [1, 2, 4, 8, 16, 32, 64]
-  lora_alpha_in_r:
+    vals: [2, 8, 32, 128]
+  lora_alpha:
     type: categorical
-    vals: [0.5, 1, 2]
+    vals: [0.5, 1, 2, 8, 32, 128, 256, 512]
   lora_dropout: 
     type: categorical
     vals: [0.1]
   # End tunable hyperparameters
+  hf_token: <HF_TOKEN>
+  wandb_key: <WANDB_KEY>
   training_args:
     output_dir: "/tmp/llm_finetuning"
-    max_steps: 5000
-    per_device_train_batch_size: 8
+    max_steps: 3000
+    per_device_train_batch_size: 4
     per_device_eval_batch_size: 4
-    fp16: true
+    bf16: true
     evaluation_strategy: "steps"
-    eval_steps: 1000
+    eval_steps: 500
     logging_strategy: "steps"
     logging_steps: 100
     save_strategy: "steps"
     save_steps: 1000
     learning_rate: 1e-5
     deepspeed: true
+    report_to: "wandb"
+    gradient_checkpointing: true
+  # Below are settings we experimneted with
+  use_adam: false
+  custom_scale_init: false
+  use_rslora: false
 entrypoint: >-
   python -m determined.launch.torch_distributed
   python finetune.py
