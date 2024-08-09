@@ -1,4 +1,4 @@
-name: mistral lora hard
+name: mistral lora hard adaptive search
 debug: false
 environment:
   environment_variables:
@@ -13,11 +13,12 @@ resources:
 workspace: swy_5
 project: lora-blog
 searcher:
-  name: grid
+  name: adaptive_asha
   max_length:
     batches: 3000
   metric: eval_accuracy
   smaller_is_better: false
+  max_trials: 32
 hyperparameters:
   model: "mistralai/Mistral-7B-Instruct-v0.2"
   model_commit_hash: "99259002b41e116d28ccb2d04a9fbe22baed0c7f"
@@ -36,8 +37,8 @@ hyperparameters:
     type: categorical
     vals: [0.1]
   # End tunable hyperparameters
-  hf_token: <HF_TOKEN>
-  wandb_key: <WANDB_KEY>
+  hf_token: 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
+  wandb_key: f0180f6bb036d27ad08649574e991121a5192dbf
   training_args:
     output_dir: "/tmp/llm_finetuning"
     max_steps: 3000
@@ -54,10 +55,6 @@ hyperparameters:
     deepspeed: true
     report_to: "wandb"
     gradient_checkpointing: true
-  # Below are settings we experimneted with
-  use_adam: false
-  custom_scale_init: false
-  use_rslora: false
 entrypoint: >-
   python -m determined.launch.torch_distributed
   python finetune.py
