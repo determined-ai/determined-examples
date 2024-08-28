@@ -24,3 +24,8 @@ Change configuration options in `lora.yaml`. Some important options are:
 
 
 DeepSpeed configuration files are in the `ds_configs` folder.
+
+
+## Contributors
+
+- [Sze Wai Yuen](https://github.com/szewaiyuen6)
