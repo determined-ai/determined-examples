@@ -15,7 +15,7 @@ This repository contains a variety of Determined examples that are not actively 
 | [LLM Finetuning](blog/llm-finetuning) | Finetuning TinyLlama-1.1B on Text-to-SQL. |
 | [LLM Finetuning 2](blog/llm-finetuning-2) | Finetuning Mistral-7B on Text-to-SQL using LoRA and DeepSpeed. |
 | [LLM Finetuning 3](blog/llm-finetuning-3) | Finetuning Gemma-2B using DPO. |
-| [LLM Finetuning 4](blog/llm-finetuning-4) | Experimenting with LoRA parameters. |
+| [LoRA Parameters](blog/lora-parameters) | Finding the best LoRA parameters. |
 | [Python SDK demo](blog/python_sdk_demo) | Example usage of the Determined Python SDK to run and administer experiments. |
 | [Tensor Parallelism](blog/tp) | Profiling tensor parallelism in PyTorch. |
 
